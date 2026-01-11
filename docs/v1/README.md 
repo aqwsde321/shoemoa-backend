@@ -1,0 +1,472 @@
+# 프로젝트 문서 가이드
+
+본 프로젝트는 **JPA 기반 실무 친화적 구조**를 학습하는 사이드 프로젝트입니다.
+
+---
+
+## 🎯 프로젝트 한 줄 정의
+
+> **"JPA Entity를 Domain으로 사용하되,  
+> Service는 오케스트레이션만 하고,  
+> Aggregate 간 협력은 Port로 한다."**
+
+---
+
+## 📚 문서 읽는 순서
+
+### 1단계: 빠른 이해 (15분)
+```
+1. README.md (지금 보고 있는 문서) - 3분
+   ↓
+2. CORE.md (설계 철학) - 5분
+   ↓
+3. Sample_code.md (전체 코드 예시) - 7분
+```
+
+**목표**: "아, 이 프로젝트는 이런 구조구나" 감 잡기
+
+---
+
+### 2단계: 실무 작성 가이드 (20분)
+```
+4. STRUCTURE.md (코드 작성 규칙) - 15분
+   ↓
+5. QUICK_REFERENCE.md (체크리스트) - 5분
+```
+
+**목표**: 실제 코드 작성 시 참고
+
+---
+
+### 3단계: 테스트 전략 (10분)
+```
+6. TESTING.md (테스트 작성 방법) - 10분
+```
+
+**목표**: Domain/UseCase/Controller 테스트 이해
+
+---
+
+## 📁 문서 역할 설명
+
+### 필수 문서
+
+| 문서 | 역할 | 언제 보나? |
+|------|------|----------|
+| **README.md** | 문서 네비게이션 | 처음 시작할 때 |
+| **CORE.md** | 설계 철학 + 절대 규칙 | 설계 논의할 때 |
+| **STRUCTURE.md** | 코드 작성 가이드 | 코드 작성할 때 (가장 자주 봄) |
+| **TESTING.md** | 테스트 전략 | 테스트 작성할 때 |
+| **QUICK_REFERENCE.md** | 체크리스트 + FAQ | PR 전 / 막힐 때 |
+| **Sample_code.md** | 전체 코드 예시 | 구조 이해할 때 |
+
+### 부가 문서
+
+| 문서 | 역할 | 언제 보나? |
+|------|------|----------|
+| **FEATURES.md** | 기능 백로그 | 티켓 분해할 때 |
+
+---
+
+## 🆘 상황별 문서 찾기
+
+### "처음 프로젝트에 투입됐어요"
+1. README.md (지금 이 문서)
+2. CORE.md
+3. Sample_code.md
+4. STRUCTURE.md
+
+**총 30분이면 전체 구조 이해 가능**
+
+---
+
+### "Entity 어떻게 작성하지?"
+→ **STRUCTURE.md** § 3. Domain 작성 규칙
+
+**핵심 체크**:
+- [ ] Setter 없음
+- [ ] 생성자는 `protected`
+- [ ] 정적 팩토리 메서드 사용
+- [ ] 비즈니스 로직 포함
+
+---
+
+### "Service에서 다른 도메인 접근하려면?"
+→ **STRUCTURE.md** § 5. Port 설계 가이드
+
+**핵심**:
+- ❌ 다른 Repository 직접 주입 금지
+- ✅ Port 인터페이스 사용
+- Port 종류: Validator, Manager, Reader, Gateway
+
+---
+
+### "Service가 다른 Service 주입받아도 돼?"
+→ **QUICK_REFERENCE.md** FAQ
+
+**답**: ❌ 안 됩니다. Port를 사용하세요.
+
+---
+
+### "테스트는 어떻게 작성하지?"
+→ **TESTING.md**
+
+**전략**:
+- Domain Test → 순수 자바 (JPA, Spring 없음)
+- UseCase Test → Fake Port 사용
+- Controller Test → 통합 테스트
+
+---
+
+### "PR 전에 뭘 체크해야 하지?"
+→ **QUICK_REFERENCE.md** PR 체크리스트
+
+**필수 체크**:
+- [ ] Entity에 Setter 없음
+- [ ] Service에 if/else 비즈니스 로직 없음
+- [ ] Service → Service 주입 없음
+- [ ] Controller에서 Entity 반환 안 함
+- [ ] Port 사용 시 네이밍 규칙 준수
+
+---
+
+### "용어가 헷갈려요"
+→ **QUICK_REFERENCE.md** 용어 참조
+
+**자주 헷갈리는 것**:
+- Port vs Repository
+- Service vs Domain Service
+- UseCase vs Application Service
+- Aggregate vs Entity
+
+---
+
+## 🏗️ 프로젝트 핵심 구조
+
+### 레이어 책임
+```
+Controller
+  - HTTP 요청/응답만 처리
+  - DTO 변환
+  
+    ↓
+
+Application Service (UseCase)
+  - 유즈케이스 흐름 조합
+  - 트랜잭션 경계
+  - Port 호출
+  
+    ↓
+
+Domain (JPA Entity)
+  - 비즈니스 규칙
+  - 상태 변경 로직
+  
+    ↓
+
+Repository
+  - 저장/조회만
+```
+
+---
+
+### Aggregate 간 협력
+```
+OrderService
+  |
+  |-- OrderRepository (직접 주입 ✅)
+  |
+  |-- MemberValidator (Port ✅)
+  |     └─ JpaMemberValidator (Infrastructure)
+  |           └─ MemberRepository
+  |
+  |-- StockManager (Port ✅)
+        └─ JpaStockManager (Infrastructure)
+              └─ ProductRepository
+```
+
+**핵심**: 
+- 자기 Aggregate Repository는 직접 주입
+- 다른 Aggregate는 Port 사용
+
+---
+
+## ⚠️ 절대 규칙 (위반 시 리뷰 반려)
+
+### 1. Entity Setter 금지
+```java
+// ❌ 금지
+order.setStatus(OrderStatus.CANCELLED);
+
+// ✅ 허용
+order.cancel();
+```
+
+---
+
+### 2. Service 비즈니스 로직 금지
+```java
+// ❌ 금지: Service에 if/else 비즈니스 분기
+if (order.getTotalPrice() > 100_000) {
+    order.setDiscount(10);
+}
+
+// ✅ 허용: Domain 메서드 호출
+order.applyDiscount();
+```
+
+---
+
+### 3. Service → Service 주입 금지
+```java
+// ❌ 금지
+@Service
+public class OrderService {
+    private final ProductService productService;
+}
+
+// ✅ 허용
+@Service
+public class OrderService {
+    private final StockManager stockManager;  // Port
+}
+```
+
+---
+
+### 4. 다른 Aggregate Repository 직접 주입 금지
+```java
+// ❌ 금지
+@Service
+public class OrderService {
+    private final OrderRepository orderRepository;
+    private final MemberRepository memberRepository;  // 다른 Aggregate
+}
+
+// ✅ 허용
+@Service
+public class OrderService {
+    private final OrderRepository orderRepository;
+    private final MemberValidator memberValidator;  // Port
+}
+```
+
+---
+
+### 5. Controller에서 Entity 반환 금지
+```java
+// ❌ 금지
+@GetMapping("/{id}")
+public Order getOrder(@PathVariable Long id) {
+    return orderService.getOrder(id);
+}
+
+// ✅ 허용
+@GetMapping("/{id}")
+public OrderResponse getOrder(@PathVariable Long id) {
+    Order order = orderService.getOrder(id);
+    return OrderResponse.from(order);
+}
+```
+
+---
+
+## 🧪 테스트 전략 요약
+
+### Domain Test (순수 자바)
+```java
+@Test
+void 주문_취소_테스트() {
+    Order order = Order.create(1L, 10L, 3);
+    
+    order.cancel();
+    
+    assertThat(order.getStatus()).isEqualTo(CANCELLED);
+}
+```
+
+**특징**:
+- Spring ❌
+- JPA ❌
+- Mock ❌
+
+---
+
+### UseCase Test (Fake Port)
+```java
+@Test
+void 비활성_회원은_주문_불가() {
+    // given
+    FakeMemberValidator validator = new FakeMemberValidator();
+    validator.setActive(1L, false);
+    
+    OrderService service = new OrderService(..., validator, ...);
+    
+    // when & then
+    assertThatThrownBy(() -> 
+        service.createOrder(1L, 10L, 3)
+    ).isInstanceOf(IllegalStateException.class);
+}
+```
+
+**특징**:
+- Spring ❌
+- Fake 구현체 사용 ✅
+
+---
+
+### Controller 통합 테스트
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+class OrderControllerTest {
+    
+    @Test
+    void 주문_생성_API_테스트() throws Exception {
+        mockMvc.perform(post("/api/orders")
+            .content(...))
+            .andExpect(status().isOk());
+    }
+}
+```
+
+**특징**:
+- Spring ✅
+- 전체 흐름 검증
+
+---
+
+## 📦 패키지 구조 한눈에 보기
+```
+com.shop
+├─ domain
+│  ├─ order (Order, OrderRepository)
+│  ├─ member (Member, MemberRepository)
+│  └─ product (Product, ProductRepository)
+│
+├─ application
+│  └─ order
+│     ├─ OrderService.java
+│     └─ port (MemberValidator, StockManager)
+│
+├─ infrastructure
+│  ├─ member (JpaMemberValidator)
+│  └─ product (JpaStockManager)
+│
+└─ presentation
+   └─ order (OrderController, DTO)
+```
+
+---
+
+## 🔄 문서 업데이트 규칙
+
+### 문서 변경 절차
+
+1. **CORE.md** 변경
+   - 팀 전체 합의 필요
+   - ADR 작성
+
+2. **STRUCTURE.md** 변경
+   - 코드 리뷰어 2명 이상 승인
+
+3. **TESTING.md** 변경
+   - 테스트 전략 변경 시 기존 테스트 영향 분석
+
+4. **QUICK_REFERENCE.md** 변경
+   - 자유롭게 업데이트 (FAQ 추가 등)
+
+---
+
+## 💡 학습 목표
+
+### 이 프로젝트를 끝내면
+
+✅ **JPA Entity를 Domain으로 사용하는 방법** 이해  
+✅ **Service 비대화 방지** 방법 체득  
+✅ **Port를 통한 Aggregate 간 협력** 패턴 학습  
+✅ **Mock 없는 테스트 전략** 경험  
+✅ **실무 친화적 구조** 설계 역량
+
+---
+
+## 🚫 이 프로젝트에서 하지 않는 것
+
+❌ 도메인 모델과 영속 모델 분리  
+❌ 과도한 추상화 (Domain Service, Specification 등)  
+❌ CQRS, Event Sourcing  
+❌ 모든 DDD 패턴 적용  
+
+**이유**: 학습 목적상 핵심만 집중. 복잡도 최소화.
+
+---
+
+## 🎓 추천 학습 순서 (신규 팀원용)
+
+### Day 1: 구조 이해
+1. README.md 읽기 (이 문서)
+2. CORE.md 읽기
+3. Sample_code.md 보면서 코드 따라치기
+
+### Day 2: 규칙 숙지
+4. STRUCTURE.md 정독
+5. QUICK_REFERENCE.md 체크리스트 확인
+6. 기존 코드 리뷰 보기
+
+### Day 3: 테스트 작성
+7. TESTING.md 읽기
+8. Domain Test 작성 실습
+9. UseCase Test 작성 실습
+
+### Day 4~: 실전
+10. FEATURES.md에서 티켓 선택
+11. 코드 작성
+12. PR 전 QUICK_REFERENCE 체크
+
+---
+
+## 🤝 기여 가이드
+
+### 코드 작성 전
+
+1. STRUCTURE.md 확인
+2. 비슷한 기능 코드 참고
+3. 모르면 질문 (문서 이슈 등록)
+
+### PR 전
+
+1. QUICK_REFERENCE.md 체크리스트 확인
+2. 테스트 작성 완료
+3. 문서 업데이트 필요 시 함께 수정
+
+### 리뷰 시
+
+1. CORE.md 규칙 위반 확인
+2. STRUCTURE.md 가이드 준수 확인
+3. 테스트 전략 일치 확인
+
+---
+
+## 📞 문의
+
+### 막힐 때
+
+1. **QUICK_REFERENCE.md** FAQ 먼저 확인
+2. 팀 채널에 질문
+3. 문서 이슈 등록 (문서 개선 제안)
+
+### 문서 개선
+
+- 읽다가 이해 안 되는 부분 발견 시 이슈 등록
+- 예시 부족하면 예시 추가 요청
+- 1년차 관점에서 어려운 부분 피드백
+
+---
+
+## 한 줄 요약
+
+> **"문서 읽는 시간: 총 45분.  
+> 코드 작성 전 STRUCTURE.md,  
+> PR 전 QUICK_REFERENCE.md 필수."**
+
+---
