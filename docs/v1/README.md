@@ -53,12 +53,12 @@
 
 | 문서 | 역할 | 언제 보나? |
 |------|------|----------|
-| **README.md** | 문서 네비게이션 | 처음 시작할 때 |
-| **CORE.md** | 설계 철학 + 절대 규칙 | 설계 논의할 때 |
-| **STRUCTURE.md** | 코드 작성 가이드 | 코드 작성할 때 (가장 자주 봄) |
-| **TESTING.md** | 테스트 전략 | 테스트 작성할 때 |
-| **QUICK_REFERENCE.md** | 체크리스트 + FAQ | PR 전 / 막힐 때 |
-| **Sample_code.md** | 전체 코드 예시 | 구조 이해할 때 |
+| **[README.md](README.md)** | 문서 네비게이션 | 처음 시작할 때 |
+| **[CORE.md](CORE.md)** | 설계 철학 + 절대 규칙 | 설계 논의할 때 |
+| **[STRUCTURE.md](STRUCTURE.md)** | 코드 작성 가이드 | 코드 작성할 때 (가장 자주 봄) |
+| **[TESTING.md](TESTING.md)** | 테스트 전략 | 테스트 작성할 때 |
+| **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** | 체크리스트 + FAQ | PR 전 / 막힐 때 |
+| **[Sample_code.md](Sample_code.md)** | 전체 코드 예시 | 구조 이해할 때 |
 
 ### 부가 문서
 

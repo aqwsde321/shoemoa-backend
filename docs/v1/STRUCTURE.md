@@ -5,6 +5,8 @@
 본 문서는 **실제 코드 작성 시 참고하는 실무 가이드**이다.  
 패키지 구조, Domain/Service 작성 규칙, Port 설계 방법을 정의한다.
 
+> **본격적으로 읽기 전, [CORE.md](CORE.md)에서 프로젝트의 핵심 설계 원칙을 먼저 확인하는 것을 권장합니다.**
+
 ---
 
 ## 1. 패키지 구조
@@ -140,6 +142,8 @@ com.shop
 ---
 
 ## 3. Domain(Entity) 작성 규칙
+
+> 전체 Entity 예시 코드는 [Sample_code.md](Sample_code.md#11-order-entity-aggregate-root)에서 확인할 수 있습니다.
 
 ### 3.1 기본 원칙
 
@@ -285,6 +289,8 @@ public void cancel() {
 
 ## 4. Service(Application) 작성 규칙
 
+> 전체 Service 예시 코드는 [Sample_code.md](Sample_code.md#22-orderservice-application-service)에서 확인할 수 있습니다.
+
 ### 4.1 Service의 역할
 
 Service는 다음 역할만 수행한다:
@@ -385,6 +391,8 @@ public class OrderService {
 
 ## 5. Port 설계 가이드 (핵심)
 
+> 전체 Port 예시 코드는 [Sample_code.md](Sample_code.md#21-port-interfaces)에서 확인할 수 있습니다.
+
 ### 5.1 Port란?
 
 **Application Layer에서 외부 의존성을 추상화한 인터페이스**.
@@ -392,7 +400,7 @@ public class OrderService {
 목적:
 
 1. Aggregate 간 직접 결합 방지
-2. UseCase 단위 테스트 가능 (Fake 사용)
+2. [UseCase 단위 테스트 가능 (Fake 사용)](TESTING.md#3-usecase-test-fake-port)
 3. 도메인 의도 명확화
 
 ---
@@ -472,6 +480,8 @@ public interface ProductReader {
 ---
 
 ### 5.5 Port 구현 예시
+
+> 더 많은 Port 구현 예시는 [Sample_code.md](Sample_code.md#31-port-구현체)에서 확인할 수 있습니다.
 
 #### 예시 1: 검증용 Port
 
@@ -630,6 +640,8 @@ public class JpaStockManager implements StockManager {
 ---
 
 ## 6. Repository 설계 규칙
+
+> Repository 예시 코드는 [Sample_code.md](Sample_code.md#13-orderrepository)에서 확인할 수 있습니다.
 
 ### 6.1 Repository 위치
 

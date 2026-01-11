@@ -2,8 +2,6 @@
 
 ## 테스트 전략
 
-> 본 프로젝트의 테스트 전략은 [CORE.md의 테스트 전략](CORE.md#--테스트-전략)을 따릅니다.
-
 본 프로젝트의 테스트 전략은 다음 원칙을 따른다:
 
 - **Mock 라이브러리 사용 금지**
@@ -27,8 +25,6 @@
 ---
 
 ## 2. Domain Test (순수 자바)
-
-> 전체 Domain Test 예시 코드는 [Sample_code.md](Sample_code.md#51-domain-test-순수-자바)에서 확인할 수 있습니다.
 
 ### 2.1 목적
 
@@ -128,8 +124,6 @@ class OrderTest {
 ---
 
 ## 3. UseCase Test (Fake Port)
-
-> 전체 UseCase Test 예시 코드는 [Sample_code.md](Sample_code.md#53-usecase-test)에서 확인할 수 있습니다.
 
 ### 3.1 목적
 
@@ -379,8 +373,6 @@ class OrderServiceTest {
 ---
 
 ## 4. Controller 통합 테스트
-
-> 전체 Controller Test 예시 코드는 [Sample_code.md](Sample_code.md#54-controller-통합-테스트)에서 확인할 수 있습니다.
 
 ### 4.1 핵심 원칙
 

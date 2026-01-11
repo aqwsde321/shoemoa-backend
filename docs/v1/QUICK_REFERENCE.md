@@ -10,51 +10,51 @@
 
 ### Entity 관련
 ```
-[ ] Entity에 public Setter가 없는가?
-[ ] 기본 생성자가 protected인가?
-[ ] 비즈니스 로직이 Entity 메서드로 구현되었는가?
-[ ] 다른 Aggregate Entity를 필드로 참조하지 않는가?
-[ ] 정적 팩토리 메서드 또는 명시적 생성자를 사용했는가?
+[ ] [Entity에 public Setter가 없는가?](STRUCTURE.md#32-setter-금지)
+[ ] [기본 생성자가 protected인가?](STRUCTURE.md#33-생성자-규칙)
+[ ] [비즈니스 로직이 Entity 메서드로 구현되었는가?](CORE.md#1-비즈니스-로직은-entity-메서드에)
+[ ] [다른 Aggregate Entity를 필드로 참조하지 않는가?](STRUCTURE.md#34-aggregate-간-관계-규칙)
+[ ] [정적 팩토리 메서드 또는 명시적 생성자를 사용했는가?](STRUCTURE.md#33-생성자-규칙)
 ```
 
 ---
 
 ### Service 관련
 ```
-[ ] Service에 if/else 비즈니스 분기가 없는가?
-[ ] Service가 다른 Service를 주입받지 않는가?
-[ ] 다른 Aggregate Repository를 직접 주입받지 않는가?
-[ ] Port 인터페이스를 사용했는가?
-[ ] @Transactional이 Service 메서드에 있는가?
+[ ] [Service에 if/else 비즈니스 분기가 없는가?](CORE.md#2-service는-ifelse-금지)
+[ ] [Service가 다른 Service를 주입받지 않는가?](STRUCTURE.md#42-service-금지-사항)
+[ ] [다른 Aggregate Repository를 직접 주입받지 않는가?](STRUCTURE.md#44-repository-사용-규칙)
+[ ] [Port 인터페이스를 사용했는가?](STRUCTURE.md#5-port-설계-가이드-핵심)
+[ ] [@Transactional이 Service 메서드에 있는가?](STRUCTURE.md#57-트랜잭션-경계)
 ```
 
 ---
 
 ### Port 관련
 ```
-[ ] Port 이름이 역할을 명확히 표현하는가? (~Validator, ~Manager, ~Reader, ~Gateway)
-[ ] Port가 Entity를 반환하지 않는가?
-[ ] Port 구현체가 Infrastructure 패키지에 있는가?
-[ ] Port 인터페이스가 application/port 패키지에 있는가?
+[ ] [Port 이름이 역할을 명확히 표현하는가?](STRUCTURE.md#53-port-분류-및-네이밍)
+[ ] [Port가 Entity를 반환하지 않는가?](STRUCTURE.md#54-port-설계-원칙)
+[ ] [Port 구현체가 Infrastructure 패키지에 있는가?](STRUCTURE.md#1-패키지-구조)
+[ ] [Port 인터페이스가 application/port 패키지에 있는가?](STRUCTURE.md#1-패키지-구조)
 ```
 
 ---
 
 ### Controller 관련
 ```
-[ ] Controller에서 Entity를 직접 반환하지 않는가?
-[ ] Request/Response DTO를 사용했는가?
-[ ] Controller에 비즈니스 로직이 없는가?
+[ ] [Controller에서 Entity를 직접 반환하지 않는가?](CORE.md#4-controller에서-entity-반환)
+[ ] [Request/Response DTO를 사용했는가?](Sample_code.md#41-request-dto)
+[ ] [Controller에 비즈니스 로직이 없는가?](CORE.md#--레이어-책임)
 ```
 
 ---
 
 ### 테스트 관련
 ```
-[ ] Domain Test는 순수 자바로 작성했는가? (Spring, JPA 없음)
-[ ] UseCase Test는 Fake Port를 사용했는가?
-[ ] Controller Test는 @SpringBootTest로 작성했는가?
-[ ] 핵심 비즈니스 규칙에 대한 Domain Test가 있는가?
+[ ] [Domain Test는 순수 자바로 작성했는가?](TESTING.md#2-domain-test-순수-자바)
+[ ] [UseCase Test는 Fake Port를 사용했는가?](TESTING.md#3-usecase-test-fake-port)
+[ ] [Controller Test는 @SpringBootTest로 작성했는가?](TESTING.md#4-controller-통합-테스트)
+[ ] [핵심 비즈니스 규칙에 대한 Domain Test가 있는가?](TESTING.md#7-테스트-커버리지-목표)
 ```
 
 ---
@@ -63,7 +63,7 @@
 
 ### Q1. Service에서 다른 도메인 Repository를 주입받아도 되나요?
 
-**A. ❌ 안 됩니다. Port를 사용하세요.**
+**A. ❌ 안 됩니다. [Port를 사용하세요.](STRUCTURE.md#5-port-설계-가이드-핵심)**
 ```java
 // ❌ 금지
 @Service
@@ -81,15 +81,15 @@ public class OrderService {
 ```
 
 **이유**:
-- Aggregate 경계 파괴
+- Aggregate 경계 파괴 ([CORE.md](CORE.md#3-aggregate-간-직접-참조-금지))
 - 결합도 증가
-- 테스트 어려움
+- 테스트 어려움 ([TESTING.md](TESTING.md#3-usecase-test-fake-port))
 
 ---
 
 ### Q2. Service가 다른 Service를 주입받아도 되나요?
 
-**A. ❌ 절대 안 됩니다. Port를 사용하세요.**
+**A. ❌ 절대 안 됩니다. [Port를 사용하세요.](STRUCTURE.md#5-port-설계-가이드-핵심)**
 ```java
 // ❌ 금지
 @Service
@@ -106,14 +106,14 @@ public class OrderService {
 
 **이유**:
 - 순환 참조 위험
-- 트랜잭션 경계 애매
+- 트랜잭션 경계 애매 ([STRUCTURE.md](STRUCTURE.md#57-트랜잭션-경계))
 - Service 계층 비대화
 
 ---
 
 ### Q3. Port는 언제 만드나요?
 
-**A. 다음 경우에만 만듭니다:**
+**A. [다음 경우에만 만듭니다:](STRUCTURE.md#52-port가-필요한-경우)**
 
 1. **다른 Aggregate 상태 검증**
 ```java
@@ -144,7 +144,7 @@ public class OrderService {
 
 ### Q4. Entity에 Setter를 꼭 안 써야 하나요?
 
-**A. ✅ 네, 절대 안 됩니다.**
+**A. ✅ 네, [절대 안 됩니다.](STRUCTURE.md#32-setter-금지)**
 ```java
 // ❌ 금지
 public class Order {
@@ -173,7 +173,7 @@ public class Order {
 
 ### Q5. Controller에서 Entity를 반환하면 안 되나요?
 
-**A. ❌ 안 됩니다. DTO를 사용하세요.**
+**A. ❌ 안 됩니다. [DTO를 사용하세요.](STRUCTURE.md#24-presentation-layer-controller)**
 ```java
 // ❌ 금지
 @GetMapping("/{id}")
@@ -198,7 +198,7 @@ public OrderResponse getOrder(@PathVariable Long id) {
 
 ### Q6. Port가 Entity를 반환해도 되나요?
 
-**A. ❌ 안 됩니다. DTO 또는 원시값만 반환하세요.**
+**A. ❌ 안 됩니다. [DTO 또는 원시값만 반환하세요.](STRUCTURE.md#54-port-설계-원칙)**
 ```java
 // ❌ 금지
 public interface ProductReader {
@@ -220,7 +220,7 @@ public interface ProductReader {
 
 ### Q7. Port 구현체에 @Transactional을 붙여야 하나요?
 
-**A. ❌ 안 됩니다. Service에만 붙입니다.**
+**A. ❌ 안 됩니다. [Service에만 붙입니다.](STRUCTURE.md#57-트랜잭션-경계)**
 ```java
 // Service: @Transactional 있음
 @Service
@@ -248,7 +248,7 @@ public class JpaStockManager implements StockManager {
 
 ### Q8. Domain Test에서 Spring을 사용하면 안 되나요?
 
-**A. ✅ 네, 순수 자바로만 작성합니다.**
+**A. ✅ 네, [순수 자바로만 작성합니다.](TESTING.md#2-domain-test-순수-자바)**
 ```java
 // ✅ 허용: 순수 자바
 @Test
@@ -277,7 +277,7 @@ class OrderTest {
 
 ### Q9. UseCase 단위 테스트를 꼭 만들어야 하나요?
 
-**A. ✅ 네, Port를 사용한다면 필수입니다.**
+**A. ✅ 네, [Port를 사용한다면 필수입니다.](TESTING.md#3-usecase-test-fake-port)**
 ```java
 class OrderServiceTest {
     
@@ -316,7 +316,7 @@ class OrderServiceTest {
 
 ### Q10. 다른 Aggregate를 수정해야 하는데 어떻게 하나요?
 
-**A. Port의 Manager를 사용하세요.**
+**A. [Port의 Manager를 사용하세요.](STRUCTURE.md#53-port-분류-및-네이밍)**
 ```java
 // Port 정의
 public interface StockManager {
@@ -412,7 +412,7 @@ public class OrderService {  // Application Service
 
 ## 🔍 코드 패턴 빠른 참조
 
-### Entity 생성 패턴
+### [Entity 생성 패턴](Sample_code.md#11-order-entity-aggregate-root)
 ```java
 @Entity
 public class Order {
@@ -464,7 +464,7 @@ public class Order {
 
 ---
 
-### Port 정의 패턴
+### [Port 정의 패턴](Sample_code.md#21-port-interfaces)
 ```java
 // Application Layer
 package com.shop.application.order.port;
@@ -499,7 +499,7 @@ public class JpaMemberValidator implements MemberValidator {
 
 ---
 
-### Service 작성 패턴
+### [Service 작성 패턴](Sample_code.md#22-orderservice-application-service)
 ```java
 @Service
 public class OrderService {
@@ -540,7 +540,7 @@ public class OrderService {
 
 ---
 
-### Fake Port 작성 패턴
+### [Fake Port 작성 패턴](Sample_code.md#52-fake-port-구현체)
 ```java
 class FakeMemberValidator implements MemberValidator {
     
