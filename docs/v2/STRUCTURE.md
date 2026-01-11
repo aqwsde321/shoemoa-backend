@@ -4,6 +4,8 @@
 
 **실제 코드 작성 시 참고하는 실무 가이드**
 
+> 본 문서를 읽기 전, [CORE.md](CORE.md)에서 설계 원칙을, [GLOSSARY.md](GLOSSARY.md)에서 주요 용어를 먼저 확인하는 것을 권장합니다.
+
 ---
 
 ## 1. 패키지 구조
@@ -34,15 +36,17 @@ com.shop
 ## 2. 레이어별 책임
 
 | 레이어 | 책임 | 허용 | 금지 |
-|--------|------|------|------|
-| **Domain** | 비즈니스 규칙 | 상태 변경, 검증 | 다른 Aggregate 참조, Repository 호출 |
-| **Application** | 유즈케이스 흐름 | Port 호출, 트랜잭션 | if/else 분기, Service 주입 |
-| **Infrastructure** | 기술 상세 | Port 구현, DB 접근 | 비즈니스 로직 |
-| **Presentation** | HTTP 처리 | DTO 변환 | Entity 반환, 비즈니스 로직 |
+|---|---|---|---|
+| **[Domain](GLOSSARY.md#domain-도메인)** | 비즈니스 규칙 | 상태 변경, 검증 | 다른 Aggregate 참조, Repository 호출 |
+| **[Application](GLOSSARY.md#application-service-애플리케이션-서비스)** | 유즈케이스 흐름 | Port 호출, 트랜잭션 | if/else 분기, Service 주입 |
+| **[Infrastructure](GLOSSARY.md#adapter-어댑터)** | 기술 상세 | Port 구현, DB 접근 | 비즈니스 로직 |
+| **[Presentation](GLOSSARY.md#layered-architecture-계층형-아키텍처)** | HTTP 처리 | DTO 변환 | Entity 반환, 비즈니스 로직 |
 
 ---
 
-## 3. Entity 작성 규칙
+## 3. [Entity](GLOSSARY.md#entity-엔티티) 작성 규칙
+
+> 전체 [Entity 예시 코드는 Sample_code.md](Sample_code.md#11-order-entity-aggregate-root)에서 확인할 수 있습니다.
 
 ### 3.1 기본 템플릿
 
@@ -117,7 +121,9 @@ public class Order {
 
 ---
 
-## 4. Service 작성 규칙
+## 4. [Service](GLOSSARY.md#application-service-애플리케이션-서비스) 작성 규칙
+
+> 전체 [Service 예시 코드는 Sample_code.md](Sample_code.md#22-orderservice-application-service)에서 확인할 수 있습니다.
 
 ### 4.1 기본 템플릿
 
@@ -185,7 +191,9 @@ private final MemberRepository memberRepository;
 
 ---
 
-## 5. Port 설계
+## 5. [Port](GLOSSARY.md#port-포트) 설계
+
+> 전체 [Port 예시 코드는 Sample_code.md](Sample_code.md#21-port-interfaces)에서 확인할 수 있습니다.
 
 ### 5.1 Port가 필요한 경우
 
@@ -282,7 +290,9 @@ public class JpaStockManager implements StockManager {
 
 ---
 
-## 6. Repository 설계
+## 6. [Repository](GLOSSARY.md#repository-리포지토리) 설계
+
+> 전체 [Repository 예시 코드는 Sample_code.md](Sample_code.md#13-orderrepository)에서 확인할 수 있습니다.
 
 ### 6.1 기본 Repository
 
@@ -401,7 +411,7 @@ public class OrderController {
 
 ---
 
-## 9. Value Object 사용 기준
+## 9. [Value Object](GLOSSARY.md#value-object-값-객체) 사용 기준
 
 다음 **2개 이상** 해당되면 Value Object 분리:
 
@@ -466,13 +476,13 @@ public class Money {
 ### 자주 찾는 패턴
 
 | 작성할 것 | 참고 문서 |
-|----------|----------|
-| Entity 템플릿 | 이 문서 § 3.1 |
-| Service 템플릿 | 이 문서 § 4.1 |
-| Port 설계 | 이 문서 § 5 |
-| 전체 코드 예시 | Sample_code.md |
-| 왜 이렇게? | CORE.md |
-| 용어 모름 | GLOSSARY.md |
+|---|---|
+| Entity 템플릿 | [이 문서 § 3.1](STRUCTURE.md#31-기본-템플릿) |
+| Service 템플릿 | [이 문서 § 4.1](STRUCTURE.md#41-기본-템플릿) |
+| Port 설계 | [이 문서 § 5](STRUCTURE.md#5-port-설계) |
+| 전체 코드 예시 | [Sample_code.md](Sample_code.md) |
+| 왜 이렇게? | [CORE.md](CORE.md) |
+| 용어 모름 | [GLOSSARY.md](GLOSSARY.md) |
 
 ---
 

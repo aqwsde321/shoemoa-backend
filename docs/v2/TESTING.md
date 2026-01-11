@@ -15,16 +15,16 @@
 
 테스트는 아래 4가지로 구분한다:
 
-| 테스트 종류         | 목적                 | 기술            | Mock |
-| ------------------- | -------------------- | --------------- | ---- |
-| **Domain Test**     | 비즈니스 규칙 검증   | 순수 Java       | ❌   |
-| **UseCase Test**    | 유즈케이스 흐름 검증 | Fake Port       | ❌   |
-| **Controller Test** | API 통합 검증        | @SpringBootTest | ❌   |
-| **성능 테스트**     | 부하/동시성 검증     | k6              | ❌   |
+| 테스트 종류 | 목적 | 기술 | Mock |
+|---|---|---|---|
+| **[Domain Test](GLOSSARY.md#domain-test-도메인-테스트)** | 비즈니스 규칙 검증 | 순수 Java | ❌ |
+| **[UseCase Test](GLOSSARY.md#usecase-test-유즈케이스-테스트)** | 유즈케이스 흐름 검증 | [Fake Port](GLOSSARY.md#fake-페이크) | ❌ |
+| **[Controller Test](GLOSSARY.md#controller-test-컨트롤러-테스트)** | API 통합 검증 | @SpringBootTest | ❌ |
+| **성능 테스트** | 부하/동시성 검증 | k6 | ❌ |
 
 ---
 
-## 2. Domain Test (순수 자바)
+## 2. [Domain Test (순수 자바)](GLOSSARY.md#domain-test-도메인-테스트)
 
 ### 2.1 목적
 
@@ -123,7 +123,7 @@ class OrderTest {
 
 ---
 
-## 3. UseCase Test (Fake Port)
+## 3. [UseCase Test](GLOSSARY.md#usecase-test-유즈케이스-테스트) ([Fake Port](GLOSSARY.md#fake-페이크))
 
 ### 3.1 목적
 
@@ -359,7 +359,7 @@ class OrderServiceTest {
 
 ---
 
-### 3.6 Fake vs Mock 차이
+### 3.6 [Fake vs Mock 차이](GLOSSARY.md#fake-vs-mock)
 
 | 구분   | Fake                      | Mock (Mockito)         |
 | ------ | ------------------------- | ---------------------- |
@@ -372,7 +372,7 @@ class OrderServiceTest {
 
 ---
 
-## 4. Controller 통합 테스트
+## 4. [Controller 통합 테스트](GLOSSARY.md#controller-test-컨트롤러-테스트)
 
 ### 4.1 핵심 원칙
 

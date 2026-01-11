@@ -66,9 +66,9 @@
 **난이도**: Lv1 ⭐  
 **예상 시간**: 2~3시간  
 **학습 목표**: 
-- Entity 작성 기본
-- Domain Test 작성
-- Controller Test 작성
+- [Entity](GLOSSARY.md#entity-엔티티) 작성 기본
+- [Domain Test](GLOSSARY.md#domain-test-도메인-테스트) 작성
+- [Controller Test](GLOSSARY.md#controller-test-컨트롤러-테스트) 작성
 
 **요구사항**:
 - 이메일 중복 체크
@@ -91,8 +91,8 @@
 ```
 
 **참고 문서**:
-- STRUCTURE.md § 3 (Entity 작성)
-- TESTING.md (Domain Test)
+- [STRUCTURE.md § 3 (Entity 작성)](STRUCTURE.md#3-entity-작성-규칙)
+- [TESTING.md (Domain Test)](TESTING.md#2-domain-test-순수-자바)
 
 ---
 
@@ -100,7 +100,7 @@
 **난이도**: Lv1 ⭐  
 **예상 시간**: 1~2시간  
 **학습 목표**: 
-- Repository 사용
+- [Repository](GLOSSARY.md#repository-리포지토리) 사용
 - DTO 변환
 
 **요구사항**:
@@ -124,7 +124,7 @@
 **예상 시간**: 4~6시간  
 **학습 목표**:
 - Enum 활용
-- 도메인 로직 작성
+- [도메인 로직](GLOSSARY.md#domain-도메인) 작성
 - 상태 전이 규칙
 
 **요구사항**:
@@ -147,7 +147,7 @@
 ```
 
 **참고 문서**:
-- CORE.md (비즈니스 로직은 Entity에)
+- [CORE.md (비즈니스 로직은 Entity에)](CORE.md#1-비즈니스-로직은-entity-메서드에)
 
 ---
 
@@ -156,8 +156,8 @@
 **예상 시간**: 3~4시간  
 **학습 목표**:
 - 상태 변경 로직
-- 도메인 규칙 검증
-- Port 사용 (주문 확인)
+- [도메인 규칙](GLOSSARY.md#domain-도메인) 검증
+- [Port](GLOSSARY.md#port-포트) 사용 (주문 확인)
 
 **요구사항**:
 - 진행 중인 주문이 있으면 비활성화 불가
@@ -177,8 +177,8 @@
 ```
 
 **참고 문서**:
-- STRUCTURE.md § 5 (Port 설계)
-- TESTING.md (UseCase Test)
+- [STRUCTURE.md § 5 (Port 설계)](STRUCTURE.md#5-port-설계)
+- [TESTING.md (UseCase Test)](TESTING.md#3-usecase-test-fake-port)
 
 ---
 
@@ -188,7 +188,7 @@
 **난이도**: Lv1 ⭐  
 **예상 시간**: 2~3시간  
 **학습 목표**:
-- Entity 작성
+- [Entity](GLOSSARY.md#entity-엔티티) 작성
 - 기본 검증
 
 **요구사항**:
@@ -217,7 +217,7 @@
 **난이도**: Lv2 ⭐⭐  
 **예상 시간**: 4~5시간  
 **학습 목표**:
-- 도메인 로직 작성
+- [도메인 로직](GLOSSARY.md#domain-도메인) 작성
 - 동시성 이슈 인지
 
 **요구사항**:
@@ -238,7 +238,7 @@
 ```
 
 **참고 문서**:
-- CORE.md (비즈니스 로직은 Entity에)
+- [CORE.md (비즈니스 로직은 Entity에)](CORE.md#1-비즈니스-로직은-entity-메서드에)
 
 ---
 
@@ -264,7 +264,7 @@
 ```
 
 **참고 문서**:
-- TESTING.md (성능 테스트)
+- [TESTING.md (성능 테스트)](TESTING.md#5-성능-테스트-k6)
 
 ---
 
@@ -274,9 +274,9 @@
 **난이도**: Lv2 ⭐⭐  
 **예상 시간**: 6~8시간  
 **학습 목표**:
-- Port를 통한 Aggregate 협력
+- [Port](GLOSSARY.md#port-포트)를 통한 [Aggregate](GLOSSARY.md#aggregate-애그리거트) 협력
 - 트랜잭션 경계
-- UseCase Test 작성
+- [UseCase Test](GLOSSARY.md#usecase-test-유즈케이스-테스트) 작성
 
 **요구사항**:
 - 회원 활성화 여부 확인
@@ -306,9 +306,9 @@
 ```
 
 **참고 문서**:
-- Sample_code.md (전체 예시)
-- STRUCTURE.md § 5 (Port 설계)
-- TESTING.md (UseCase Test)
+- [Sample_code.md (전체 예시)](Sample_code.md)
+- [STRUCTURE.md § 5 (Port 설계)](STRUCTURE.md#5-port-설계)
+- [TESTING.md (UseCase Test)](TESTING.md#3-usecase-test-fake-port)
 
 ---
 
@@ -366,7 +366,7 @@
 ```
 
 **참고 문서**:
-- STRUCTURE.md § 6 (Repository 설계)
+- [STRUCTURE.md § 6 (Repository 설계)](STRUCTURE.md#6-repository-설계)
 
 ---
 
@@ -376,7 +376,7 @@
 **난이도**: Lv2 ⭐⭐  
 **예상 시간**: 4~6시간  
 **학습 목표**:
-- Gateway Port 사용
+- [Gateway Port](GLOSSARY.md#port-포트) 사용
 - 외부 시스템 연동 추상화
 
 **요구사항**:
@@ -395,7 +395,7 @@
 ```
 
 **참고 문서**:
-- STRUCTURE.md § 5.2 (Port 네이밍)
+- [STRUCTURE.md § 5.2 (Port 네이밍)](STRUCTURE.md#52-port-종류와-네이밍)
 
 ---
 
@@ -424,12 +424,14 @@
 
 ## Epic 5: 할인/쿠폰 (Promotion)
 
+## Epic 5: 할인/쿠폰 (Promotion)
+
 ### [Lv3] 쿠폰 발급 및 사용
 **난이도**: Lv3 ⭐⭐⭐  
 **예상 시간**: 1~2일  
 **학습 목표**:
-- 복잡한 도메인 규칙
-- Value Object 활용
+- 복잡한 [도메인 규칙](GLOSSARY.md#domain-도메인)
+- [Value Object](GLOSSARY.md#value-object-값-객체) 활용
 
 **요구사항**:
 - 쿠폰 종류: 정액, 정률
@@ -453,7 +455,7 @@
 ```
 
 **참고 문서**:
-- STRUCTURE.md § 9 (Value Object)
+- [STRUCTURE.md § 9 (Value Object)](STRUCTURE.md#9-value-object-사용-기준)
 
 ---
 

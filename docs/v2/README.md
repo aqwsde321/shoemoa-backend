@@ -16,15 +16,15 @@
 
 | 문서 | 역할 | 분량 | 언제 보나? |
 |------|------|------|----------|
-| **CORE.md** | 설계 철학 + 절대 규칙 | 15분 | 설계 논의할 때 |
-| **STRUCTURE.md** | 코드 작성 가이드 | 20분 | 코드 작성할 때 ⭐ |
-| **QUICK_REFERENCE.md** | 체크리스트 + FAQ | 5분 | PR 전 / 막힐 때 ⭐ |
-| **TESTING.md** | 테스트 전략 | 15분 | 테스트 작성할 때 |
-| **GLOSSARY.md** | 용어 사전 | 10분 | 용어 모를 때 ⭐ |
+| **[CORE.md](CORE.md)** | 설계 철학 + 절대 규칙 | 15분 | 설계 논의할 때 |
+| **[STRUCTURE.md](STRUCTURE.md)** | 코드 작성 가이드 | 20분 | 코드 작성할 때 ⭐ |
+| **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** | 체크리스트 + FAQ | 5분 | PR 전 / 막힐 때 ⭐ |
+| **[TESTING.md](TESTING.md)** | 테스트 전략 | 15분 | 테스트 작성할 때 |
+| **[GLOSSARY.md](GLOSSARY.md)** | 용어 사전 | 10분 | 용어 모를 때 ⭐ |
 
 > ⭐ = 가장 자주 보는 문서
 
-**부가 문서**: Sample_code.md (전체 예시), FEATURES.md (백로그)
+**부가 문서**: [Sample_code.md](Sample_code.md) (전체 예시), [FEATURES.md](FEATURES.md) (백로그)
 
 ---
 
@@ -34,26 +34,26 @@
 ```
 1. README.md (지금 보고 있는 문서) - 3분
    ↓
-2. CORE.md (핵심 3가지 규칙만) - 5분
+2. [CORE.md](CORE.md) (핵심 3가지 규칙만) - 5분
    ↓
-3. Sample_code.md (Order 예시만) - 2분
+3. [Sample_code.md](Sample_code.md) (Order 예시만) - 2분
 ```
 
 ### 2단계: 용어 익히기
 ```
-4. GLOSSARY.md - 10분
-   - Port, Aggregate, UseCase 등 핵심 용어
+4. [GLOSSARY.md](GLOSSARY.md) - 10분
+   - [Port](GLOSSARY.md#port-포트), [Aggregate](GLOSSARY.md#aggregate-애그리거트), [UseCase](GLOSSARY.md#usecase-유즈케이스) 등 핵심 용어
 ```
 
 ### 3단계: 코드 작성 준비
 ```
-5. STRUCTURE.md - 20분
+5. [STRUCTURE.md](STRUCTURE.md) - 20분
    - Entity/Service/Port 작성법
 ```
 
 ### 4단계: 실전 투입
 ```
-6. QUICK_REFERENCE.md 북마크
+6. [QUICK_REFERENCE.md](QUICK_REFERENCE.md) 북마크
    - PR 전 체크리스트
    - 막힐 때 FAQ
 ```
@@ -68,42 +68,42 @@
 → **빠른 시작** 순서대로 (위 참조)
 
 ### "용어가 뭔지 모르겠어요"
-→ **GLOSSARY.md**
+→ **[GLOSSARY.md](GLOSSARY.md)**
 
-- Port가 뭐지?
-- Aggregate가 뭐지?
-- UseCase가 뭐지?
+- [Port가 뭐지?](GLOSSARY.md#port-포트)
+- [Aggregate가 뭐지?](GLOSSARY.md#aggregate-애그리거트)
+- [UseCase가 뭐지?](GLOSSARY.md#usecase-유즈케이스)
 
 ### "Entity 어떻게 작성하지?"
-→ **STRUCTURE.md § 3**
+→ **[STRUCTURE.md § 3](STRUCTURE.md#3-entity-작성-규칙)**
 
 **빠른 확인**:
-- [ ] Setter 없음?
-- [ ] 생성자 protected?
-- [ ] 비즈니스 메서드 있음?
+- [ ] [Setter 없음?](STRUCTURE.md#32-setter-금지)
+- [ ] [생성자 protected?](STRUCTURE.md#33-생성자-규칙)
+- [ ] [비즈니스 메서드 있음?](CORE.md#1-비즈니스-로직은-entity-메서드에)
 
 ### "Service에서 다른 도메인 접근하려면?"
-→ **STRUCTURE.md § 5 (Port 설계)**
+→ **[STRUCTURE.md § 5 (Port 설계)](STRUCTURE.md#5-port-설계)**
 
 **핵심**:
-- ❌ 다른 Repository 직접 주입 금지
-- ✅ Port 인터페이스 사용
+- ❌ [다른 Repository 직접 주입 금지](STRUCTURE.md#44-repository-사용-규칙)
+- ✅ [Port 인터페이스 사용](STRUCTURE.md#5-port-설계)
 
 ### "Service가 다른 Service 주입받아도 돼?"
-→ **QUICK_REFERENCE.md FAQ Q2**
+→ **[QUICK_REFERENCE.md FAQ Q2](QUICK_REFERENCE.md#q2-service가-다른-service-주입)**
 
 **답**: ❌ 안 됩니다. Port 사용
 
 ### "테스트는 어떻게 작성하지?"
-→ **TESTING.md**
+→ **[TESTING.md](TESTING.md)**
 
 **3가지 전략**:
-- Domain Test → 순수 자바
-- UseCase Test → Fake Port
-- Controller Test → 통합 테스트
+- [Domain Test](TESTING.md#2-domain-test-순수-자바) → 순수 자바
+- [UseCase Test](TESTING.md#3-usecase-test-fake-port) → Fake Port
+- [Controller Test](TESTING.md#4-controller-통합-테스트) → 통합 테스트
 
 ### "PR 전에 뭘 체크해야 하지?"
-→ **QUICK_REFERENCE.md (첫 페이지)**
+→ **[QUICK_REFERENCE.md (첫 페이지)](QUICK_REFERENCE.md#pr-전-필수-체크리스트)**
 
 **5초 체크**:
 - Entity Setter 없음?
@@ -111,12 +111,12 @@
 - Port 사용?
 
 ### "전체 구조가 어떻게 되는 거지?"
-→ **Sample_code.md**
+→ **[Sample_code.md](Sample_code.md)**
 
 Order Aggregate 전체 예시 (Domain → Service → Controller)
 
 ### "왜 이렇게 설계했어?"
-→ **CORE.md**
+→ **[CORE.md](CORE.md#--이-구조를-선택한-이유)**
 
 설계 철학, 절대 규칙, 이유
 
@@ -124,7 +124,7 @@ Order Aggregate 전체 예시 (Domain → Service → Controller)
 
 ## 📖 문서별 상세 역할
 
-### CORE.md - 설계 철학
+### [CORE.md](CORE.md) - 설계 철학
 **읽는 사람**: 설계 논의 참여자, 아키텍처 이해하고 싶은 사람
 
 **내용**:
@@ -137,7 +137,7 @@ Order Aggregate 전체 예시 (Domain → Service → Controller)
 
 ---
 
-### STRUCTURE.md - 코드 작성 가이드
+### [STRUCTURE.md](STRUCTURE.md) - 코드 작성 가이드
 **읽는 사람**: 실제 코드 작성하는 모든 개발자
 
 **내용**:
@@ -150,7 +150,7 @@ Order Aggregate 전체 예시 (Domain → Service → Controller)
 
 ---
 
-### QUICK_REFERENCE.md - 빠른 참조
+### [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - 빠른 참조
 **읽는 사람**: PR 전 체크하는 사람, 막힌 사람
 
 **내용**:
@@ -163,7 +163,7 @@ Order Aggregate 전체 예시 (Domain → Service → Controller)
 
 ---
 
-### TESTING.md - 테스트 전략
+### [TESTING.md](TESTING.md) - 테스트 전략
 **읽는 사람**: 테스트 작성하는 사람
 
 **내용**:
@@ -176,7 +176,7 @@ Order Aggregate 전체 예시 (Domain → Service → Controller)
 
 ---
 
-### GLOSSARY.md - 용어 사전
+### [GLOSSARY.md](GLOSSARY.md) - 용어 사전
 **읽는 사람**: 용어 모르는 모든 사람
 
 **내용**:
@@ -189,7 +189,7 @@ Order Aggregate 전체 예시 (Domain → Service → Controller)
 
 ---
 
-### Sample_code.md - 전체 예시
+### [Sample_code.md](Sample_code.md) - 전체 예시
 **읽는 사람**: 전체 구조 보고 싶은 사람
 
 **내용**:
@@ -205,26 +205,26 @@ Order Aggregate 전체 예시 (Domain → Service → Controller)
 
 ### 레이어 책임
 ```
-Controller
+[Controller](GLOSSARY.md#layered-architecture-계층형-아키텍처)
   - HTTP 요청/응답
   - DTO 변환
   
     ↓
 
-Service (UseCase)
+[Service (UseCase)](GLOSSARY.md#application-service-애플리케이션-서비스)
   - 흐름 조합
   - 트랜잭션 경계
   - Port 호출
   
     ↓
 
-Domain (Entity)
+[Domain (Entity)](GLOSSARY.md#domain-도메인)
   - 비즈니스 규칙
   - 상태 변경
   
     ↓
 
-Repository
+[Repository](GLOSSARY.md#repository-리포지토리)
   - 저장/조회
 ```
 
@@ -245,33 +245,33 @@ OrderService
 
 ---
 
-## ⚠️ 절대 규칙 5가지
+## ⚠️ [절대 규칙 5가지](CORE.md#--절대-금지-사항)
 
-### 1. Entity Setter 금지
+### 1. [Entity Setter 금지](STRUCTURE.md#32-setter-금지)
 ```java
 // ❌ order.setStatus(CANCELLED);
 // ✅ order.cancel();
 ```
 
-### 2. Service 비즈니스 로직 금지
+### 2. [Service 비즈니스 로직 금지](CORE.md#2-service는-ifelse-금지)
 ```java
 // ❌ if (price > 100_000) { ... }
 // ✅ order.applyDiscount();
 ```
 
-### 3. Service → Service 주입 금지
+### 3. [Service → Service 주입 금지](CORE.md#2-service--service-주입)
 ```java
 // ❌ private final ProductService productService;
 // ✅ private final StockManager stockManager;
 ```
 
-### 4. 다른 Aggregate Repository 직접 주입 금지
+### 4. [다른 Aggregate Repository 직접 주입 금지](CORE.md#3-aggregate-간-직접-참조-금지)
 ```java
 // ❌ private final MemberRepository memberRepository;
 // ✅ private final MemberValidator memberValidator;
 ```
 
-### 5. Controller에서 Entity 반환 금지
+### 5. [Controller에서 Entity 반환 금지](CORE.md#4-controller에서-entity-반환)
 ```java
 // ❌ return orderService.get(id);
 // ✅ return OrderResponse.from(orderService.get(id));
@@ -281,13 +281,13 @@ OrderService
 
 ---
 
-## 🧪 테스트 전략 (요약)
+## 🧪 [테스트 전략 (요약)](TESTING.md)
 
 | 테스트 | 기술 | 목적 |
 |--------|------|------|
-| **Domain Test** | 순수 Java | 비즈니스 규칙 검증 |
-| **UseCase Test** | Fake Port | 유즈케이스 흐름 검증 |
-| **Controller Test** | @SpringBootTest | API 통합 검증 |
+| **[Domain Test](TESTING.md#2-domain-test-순수-자바)** | 순수 Java | 비즈니스 규칙 검증 |
+| **[UseCase Test](TESTING.md#3-usecase-test-fake-port)** | Fake Port | 유즈케이스 흐름 검증 |
+| **[Controller Test](TESTING.md#4-controller-통합-테스트)** | @SpringBootTest | API 통합 검증 |
 
 **특징**: Mock 라이브러리 사용 금지 (Fake 사용)
 
@@ -297,18 +297,18 @@ OrderService
 
 이 프로젝트를 끝내면:
 
-✅ JPA Entity를 Domain으로 사용하는 방법  
-✅ Service 비대화 방지 방법  
-✅ Port를 통한 Aggregate 협력 패턴  
-✅ Mock 없는 테스트 전략  
+✅ [JPA Entity를 Domain으로 사용하는 방법](CORE.md#--도메인-정의)  
+✅ [Service 비대화 방지 방법](STRUCTURE.md#4-service-작성-규칙)  
+✅ [Port를 통한 Aggregate 협력 패턴](STRUCTURE.md#5-port-설계)  
+✅ [Mock 없는 테스트 전략](TESTING.md#10-테스트-anti-pattern)  
 ✅ 실무 친화적 구조 설계 역량
 
 ---
 
 ## 🚫 이 프로젝트에서 하지 않는 것
 
-❌ Domain/Entity 분리  
-❌ Domain Service 사용  
+❌ [Domain/Entity 분리](GLOSSARY.md#-본-프로젝트만의-특징)  
+❌ [Domain Service 사용](GLOSSARY.md#domain-service-도메인-서비스)  
 ❌ CQRS, Event Sourcing  
 ❌ 모든 DDD 패턴 적용
 
@@ -354,19 +354,19 @@ Day 1-5: 실제 티켓 작업
 ## 🤝 기여 가이드
 
 ### 코드 작성 전
-1. STRUCTURE.md 확인
+1. [STRUCTURE.md](STRUCTURE.md) 확인
 2. 비슷한 기능 코드 참고
-3. 모르는 용어는 GLOSSARY.md
+3. 모르는 용어는 [GLOSSARY.md](GLOSSARY.md)
 
 ### PR 전
-1. **QUICK_REFERENCE.md 체크리스트** 확인 (필수)
+1. **[QUICK_REFERENCE.md 체크리스트](QUICK_REFERENCE.md#pr-전-필수-체크리스트)** 확인 (필수)
 2. 테스트 작성 완료
 3. 문서 업데이트 (필요 시)
 
 ### 리뷰 시
-1. CORE.md 규칙 위반 확인
-2. STRUCTURE.md 가이드 준수 확인
-3. 테스트 전략 일치 확인
+1. [CORE.md](CORE.md) 규칙 위반 확인
+2. [STRUCTURE.md](STRUCTURE.md) 가이드 준수 확인
+3. [TESTING.md](TESTING.md) 전략 일치 확인
 
 ---
 
@@ -389,14 +389,14 @@ Day 1-5: 실제 티켓 작업
 
 | 상황 | 문서 | 섹션 |
 |------|------|------|
-| 용어 모름 | GLOSSARY.md | - |
-| Entity 작성 | STRUCTURE.md | § 3 |
-| Service 작성 | STRUCTURE.md | § 4 |
-| Port 설계 | STRUCTURE.md | § 5 |
-| PR 체크 | QUICK_REFERENCE.md | 첫 페이지 |
-| 테스트 작성 | TESTING.md | - |
-| 전체 예시 | Sample_code.md | - |
-| 설계 이유 | CORE.md | - |
+| 용어 모름 | [GLOSSARY.md](GLOSSARY.md) | - |
+| Entity 작성 | [STRUCTURE.md](STRUCTURE.md) | [§ 3](STRUCTURE.md#3-entity-작성-규칙) |
+| Service 작성 | [STRUCTURE.md](STRUCTURE.md) | [§ 4](STRUCTURE.md#4-service-작성-규칙) |
+| Port 설계 | [STRUCTURE.md](STRUCTURE.md) | [§ 5](STRUCTURE.md#5-port-설계) |
+| PR 체크 | [QUICK_REFERENCE.md](QUICK_REFERENCE.md) | [첫 페이지](QUICK_REFERENCE.md#pr-전-필수-체크리스트) |
+| 테스트 작성 | [TESTING.md](TESTING.md) | - |
+| 전체 예시 | [Sample_code.md](Sample_code.md) | - |
+| 설계 이유 | [CORE.md](CORE.md) | [§ 🎓](CORE.md#--이-구조를-선택한-이유) |
 
 ---
 

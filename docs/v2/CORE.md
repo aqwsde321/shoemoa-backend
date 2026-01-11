@@ -16,7 +16,7 @@
 
 ## 📐 핵심 규칙 3가지
 
-### 1. 비즈니스 로직은 Entity 메서드에
+### 1. 비즈니스 로직은 [Entity](GLOSSARY.md#entity-엔티티) 메서드에
 
 ```java
 // ❌ 금지: Service에 비즈니스 로직
@@ -44,7 +44,7 @@ public class Order {
 
 ---
 
-### 2. Service는 if/else 금지
+### 2. [Service](GLOSSARY.md#application-service-애플리케이션-서비스)는 if/else 금지
 
 ```java
 // ❌ 금지: Service에서 비즈니스 판단
@@ -74,7 +74,7 @@ public class OrderService {
 
 ---
 
-### 3. Aggregate 간 직접 참조 금지
+### 3. [Aggregate](GLOSSARY.md#aggregate-애그리거트) 간 직접 참조 금지
 
 ```java
 // ❌ 금지: 다른 Aggregate Repository 직접 주입
@@ -94,22 +94,22 @@ public class OrderService {
 
 ---
 
-## 🏗️ 레이어 책임
+## 🏗️ [레이어 책임](GLOSSARY.md#layered-architecture-계층형-아키텍처)
 
-| 레이어         | 책임                 | 허용                     | 금지                       |
-| -------------- | -------------------- | ------------------------ | -------------------------- |
-| **Controller** | HTTP 요청/응답       | DTO 변환                 | Entity 반환, 비즈니스 로직 |
-| **Service**    | 유즈케이스 흐름 제어 | Port 호출, 트랜잭션 경계 | if/else 비즈니스 분기      |
-| **Domain**     | 비즈니스 규칙        | 상태 변경, 검증          | 다른 Aggregate 참조        |
-| **Repository** | 영속성               | 저장/조회                | 비즈니스 로직              |
+| 레이어 | 책임 | 허용 | 금지 |
+|---|---|---|---|
+| **[Controller](GLOSSARY.md#presentation-layer-controller)** | HTTP 요청/응답 | DTO 변환 | Entity 반환, 비즈니스 로직 |
+| **[Service](GLOSSARY.md#application-service-애플리케이션-서비스)** | 유즈케이스 흐름 제어 | Port 호출, 트랜잭션 경계 | if/else 비즈니스 분기 |
+| **[Domain](GLOSSARY.md#domain-도메인)** | 비즈니스 규칙 | 상태 변경, 검증 | 다른 Aggregate 참조 |
+| **[Repository](GLOSSARY.md#repository-리포지토리)** | 영속성 | 저장/조회 | 비즈니스 로직 |
 
 ---
 
-## 🔗 Aggregate 간 협력 원칙
+## 🔗 [Aggregate](GLOSSARY.md#aggregate-애그리거트) 간 협력 원칙
 
 ### 기본 방침
 
-**OrderService는 Order 이외의 Aggregate와 [Port](STRUCTURE.md#5-port-설계-가이드-핵심)로만 협력한다.**
+**OrderService는 Order 이외의 Aggregate와 [Port](STRUCTURE.md#5-port-설계)로만 협력한다.**
 
 ```
 OrderService
@@ -127,15 +127,15 @@ OrderService
 
 ---
 
-### Port를 사용하는 이유
+### [Port](GLOSSARY.md#port-포트)를 사용하는 이유
 
-1. **Aggregate 경계 유지**
+1. **[Aggregate](GLOSSARY.md#aggregate-애그리거트) 경계 유지**
 
    - OrderService는 Member, Product 내부 구조를 모름
 
-2. **테스트 가능성**
+2. **[테스트 가능성](TESTING.md#3-usecase-test-fake-port)**
 
-   - Fake 구현체로 UseCase 단위 테스트 가능
+   - [Fake](GLOSSARY.md#fake-페이크) 구현체로 [UseCase 단위 테스트](GLOSSARY.md#usecase-test-유즈케이스-테스트) 가능
 
 3. **변경 영향 최소화**
    - Member 테이블 구조 변경 시 OrderService 무영향
@@ -182,7 +182,7 @@ public class OrderService {
 
 ## 🚫 절대 금지 사항
 
-### 1. Entity Setter 사용
+### 1. [Entity Setter 사용](STRUCTURE.md#32-setter-금지)
 
 ```java
 // ❌ 금지
@@ -194,7 +194,7 @@ order.cancel();
 
 ---
 
-### 2. Service → Service 주입
+### 2. [Service → Service 주입](STRUCTURE.md#42-service-금지-사항)
 
 ```java
 // ❌ 금지
@@ -214,7 +214,7 @@ public class OrderService {
 
 ---
 
-### 3. 다른 Aggregate Repository 직접 주입
+### 3. [다른 Aggregate Repository 직접 주입](STRUCTURE.md#44-repository-사용-규칙)
 
 ```java
 // ❌ 금지
@@ -232,7 +232,7 @@ public class OrderService {
 
 ---
 
-### 4. Controller에서 Entity 반환
+### 4. [Controller에서 Entity 반환](STRUCTURE.md#24-presentation-layer-controller)
 
 ```java
 // ❌ 금지
@@ -255,11 +255,11 @@ public OrderResponse getOrder(@PathVariable Long id) {
 
 ### 3단계 테스트
 
-| 테스트              | 대상                 | 기술            | 목적            |
-| ------------------- | -------------------- | --------------- | --------------- |
-| **Domain Test**     | Entity 비즈니스 로직 | 순수 자바       | 규칙 검증       |
-| **UseCase Test**    | Service 흐름         | Fake Port       | 유즈케이스 검증 |
-| **Controller Test** | API 엔드포인트       | @SpringBootTest | 전체 통합 검증  |
+| 테스트 | 대상 | 기술 | 목적 |
+|---|---|---|---|
+| **[Domain Test](GLOSSARY.md#domain-test-도메인-테스트)** | Entity 비즈니스 로직 | 순수 자바 | 규칙 검증 |
+| **[UseCase Test](GLOSSARY.md#usecase-test-유즈케이스-테스트)** | Service 흐름 | Fake Port | 유즈케이스 검증 |
+| **[Controller Test](GLOSSARY.md#controller-test-컨트롤러-테스트)** | API 엔드포인트 | @SpringBootTest | 전체 통합 검증 |
 
 ---
 
@@ -335,13 +335,13 @@ class OrderControllerTest {
 
 ---
 
-## 📦 도메인 정의
+## 📦 [도메인 정의](GLOSSARY.md#domain-도메인)
 
-### Domain = [JPA Entity](STRUCTURE.md#3-domainentity-작성-규칙)
+### Domain = [JPA Entity](STRUCTURE.md#3-entity-작성-규칙)
 
 본 프로젝트에서:
 
-> **Domain Entity = JPA Entity**
+> **[Domain Entity](GLOSSARY.md#entity-엔티티) = [JPA Entity](GLOSSARY.md#entity-엔티티)**
 
 도메인 모델과 영속 모델을 **분리하지 않는다**.
 

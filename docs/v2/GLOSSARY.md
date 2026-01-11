@@ -11,7 +11,7 @@
 
 ### 🎯 DDD 핵심 개념
 
-#### Aggregate (애그리거트)
+#### [Aggregate (애그리거트)](STRUCTURE.md#34-aggregate-간-관계-규칙)
 **한 문장**: 일관성을 유지해야 하는 객체들의 묶음
 
 **설명**:
@@ -53,7 +53,7 @@ orderItemRepository.save(item);  // 이런 Repository 없음
 
 ---
 
-#### Entity (엔티티)
+#### [Entity (엔티티)](STRUCTURE.md#3-entity-작성-규칙)
 **한 문장**: 고유한 식별자(ID)를 가진 객체
 
 **설명**:
@@ -74,7 +74,7 @@ Order order2 = new Order(1L, ...);
 
 ---
 
-#### Value Object (값 객체)
+#### [Value Object (값 객체)](STRUCTURE.md#9-value-object-사용-기준)
 **한 문장**: 식별자 없이 속성으로만 구별되는 불변 객체
 
 **설명**:
@@ -101,7 +101,7 @@ public class Money {
 
 ---
 
-#### Domain (도메인)
+#### [Domain (도메인)](CORE.md#--도메인-정의)
 **한 문장**: 비즈니스 규칙과 지식이 담긴 영역
 
 **설명**:
@@ -127,7 +127,7 @@ public class Order {
 
 ---
 
-#### Repository (리포지토리)
+#### [Repository (리포지토리)](STRUCTURE.md#6-repository-설계)
 **한 문장**: Aggregate를 저장/조회하는 인터페이스
 
 **설명**:
@@ -156,7 +156,7 @@ OrderItemRepository  // 없음
 
 ### 🏗️ 레이어 개념
 
-#### Application Service (애플리케이션 서비스)
+#### [Application Service (애플리케이션 서비스)](STRUCTURE.md#4-service-작성-규칙)
 **한 문장**: UseCase를 실행하는 흐름 제어 계층
 
 **설명**:
@@ -223,7 +223,7 @@ public class OrderService {
 
 ---
 
-#### Port (포트)
+#### [Port (포트)](STRUCTURE.md#5-port-설계)
 **한 문장**: Aggregate 간 협력을 추상화한 인터페이스
 
 **설명**:
@@ -262,7 +262,7 @@ public class JpaMemberValidator implements MemberValidator {
 
 **왜 사용**:
 - Aggregate 경계 유지
-- 테스트 가능성 (Fake 사용)
+- [테스트 가능성 (Fake 사용)](TESTING.md#3-usecase-test-fake-port)
 - 의존성 역전
 
 **관련 용어**: Application Service, Aggregate
@@ -302,7 +302,7 @@ public class TossPaymentGateway implements PaymentGateway {
 
 ### 🧪 테스트 개념
 
-#### Fake (페이크)
+#### [Fake (페이크)](TESTING.md#33-fake-port-구현-예시)
 **한 문장**: 실제 동작하는 간단한 구현체 (테스트용)
 
 **설명**:
@@ -334,7 +334,7 @@ class FakeMemberValidator implements MemberValidator {
 
 ---
 
-#### Mock (목)
+#### [Mock (목)](TESTING.md#36-fake-vs-mock-차이)
 **한 문장**: 행위를 기록/검증하는 테스트 더블
 
 **설명**:
@@ -351,7 +351,7 @@ class FakeMemberValidator implements MemberValidator {
 
 ---
 
-#### Domain Test (도메인 테스트)
+#### [Domain Test (도메인 테스트)](TESTING.md#2-domain-test-순수-자바)
 **한 문장**: 비즈니스 규칙을 검증하는 순수 Java 테스트
 
 **설명**:
@@ -375,7 +375,7 @@ void 주문은_생성_상태에서만_취소_가능() {
 
 ---
 
-#### UseCase Test (유즈케이스 테스트)
+#### [UseCase Test (유즈케이스 테스트)](TESTING.md#3-usecase-test-fake-port)
 **한 문장**: Service 흐름을 Fake Port로 검증하는 테스트
 
 **설명**:
@@ -402,7 +402,7 @@ void 비활성_회원은_주문_불가() {
 
 ---
 
-#### Controller Test (컨트롤러 테스트)
+#### [Controller Test (컨트롤러 테스트)](TESTING.md#4-controller-통합-테스트)
 **한 문장**: HTTP API 전체 흐름을 검증하는 통합 테스트
 
 **설명**:
@@ -475,7 +475,7 @@ Infrastructure (Port 구현, Repository 구현)
 | 역할 | 흐름 제어 | 도메인 로직 |
 | 상태 | 없음 | 없음 |
 | 트랜잭션 | ✅ 있음 | ❌ 없음 |
-| 본 프로젝트 | ✅ 사용 | ❌ 사용 안 함 |
+| 본 프로젝트 | ✅ [사용](STRUCTURE.md#4-service-작성-규칙) | ❌ 사용 안 함 |
 
 ---
 
@@ -483,7 +483,7 @@ Infrastructure (Port 구현, Repository 구현)
 | 구분 | Port | Repository |
 |------|------|------------|
 | 목적 | Aggregate 간 협력 | 영속성 |
-| 위치 | Application/port | Domain |
+| 위치 | [Application/port](STRUCTURE.md#5-port-설계) | [Domain](STRUCTURE.md#6-repository-설계) |
 | 구현 위치 | Infrastructure | Infrastructure |
 | 예시 | MemberValidator | OrderRepository |
 
@@ -511,24 +511,24 @@ public class OrderService {
 | 의미 | 일관성 경계를 가진 묶음 | 식별자를 가진 객체 |
 | 관계 | 여러 Entity를 포함 가능 | Aggregate의 구성원 |
 | 접근 | Root를 통해서만 | - |
-| 예시 | Order (Root) + OrderItem | Order, OrderItem 각각 |
+| 예시 | `Order` (Root) + `OrderItem` | `Order`, `OrderItem` 각각 |
 
 ---
 
-### Fake vs Mock
+### [Fake vs Mock](TESTING.md#36-fake-vs-mock-차이)
 | 구분 | Fake | Mock |
 |------|------|------|
 | 구현 | 실제 동작하는 간단 버전 | 행위 기록/검증 |
 | 상태 | 내부 상태 유지 | 상태 없음 |
 | 검증 | 실제 동작 검증 | 호출 여부 검증 |
 | 재사용 | 여러 테스트에서 재사용 | 테스트마다 재정의 |
-| 본 프로젝트 | ✅ 사용 | ❌ 사용 안 함 |
+| 본 프로젝트 | ✅ [사용](TESTING.md#33-fake-port-구현-예시) | ❌ 사용 안 함 |
 
 ---
 
 ## 📖 본 프로젝트만의 특징
 
-### Domain = JPA Entity
+### [Domain = JPA Entity](CORE.md#--도메인-정의)
 - 도메인 모델과 영속 모델을 **분리하지 않음**
 - `@Entity` = Domain Entity
 - 대신 DDD 규율(Setter 금지 등)은 엄격히 적용
@@ -538,7 +538,7 @@ public class OrderService {
 - Aggregate 간 협력은 Port 사용
 - 복잡도 최소화 목적
 
-### Mock 라이브러리 금지
+### [Mock 라이브러리 금지](TESTING.md#10-테스트-anti-pattern)
 - Mockito, MockK 등 사용 안 함
 - 대신 Fake 구현체 사용
 - 테스트가 실제 동작에 가까워짐
