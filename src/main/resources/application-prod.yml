@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shoemoa
+    driver-class-name: org.postgresql.Driver
+    username: shoemoa
+    password: shoemoa
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # ❗ 운영에서는 절대 create/update 금지
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
