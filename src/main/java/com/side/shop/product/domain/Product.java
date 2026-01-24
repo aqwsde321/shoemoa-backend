@@ -1,17 +1,17 @@
 package com.side.shop.product.domain;
 
+import com.side.shop.common.domain.BaseEntity;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Product {
+public class Product extends BaseEntity {
 
     @Id
     @GeneratedValue
@@ -24,7 +24,7 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductOption> options = new ArrayList<>();
 
-    //상품 생성
+    // 상품 생성
     public static Product create(String name, String description) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("상품명은 필수입니다.");
@@ -37,17 +37,30 @@ public class Product {
         this.description = description;
     }
 
-    //옵션 추가
-    //연관관계 메서드
+    // 옵션 추가
+    // 연관관계 메서드
     public void addOption(ProductOption option) {
         options.add(option);
         option.assignProduct(this);
+    }
+
+    public void removeOption(ProductOption option) {
+        options.remove(option);
+        option.assignProduct(null);
     }
 
     public ProductOption getOption(Long optionId) {
         return options.stream()
                 .filter(o -> o.getId().equals(optionId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("옵션 없음"));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 옵션입니다."));
+    }
+
+    public void updateInfo(String name, String description) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("상품명은 필수입니다.");
+        }
+        this.name = name;
+        this.description = description;
     }
 }
