@@ -1,11 +1,10 @@
 package com.side.shop.product.domain;
 
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class ProductOptionTest {
 
@@ -22,5 +21,4 @@ class ProductOptionTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("가격은 0보다 작거나 같을 수 없습니다.");
     }
-
 }

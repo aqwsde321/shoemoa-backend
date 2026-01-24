@@ -1,0 +1,94 @@
+package com.side.shop.product.application;
+
+import com.side.shop.product.domain.Product;
+import com.side.shop.product.domain.ProductOption;
+import com.side.shop.product.infrastructure.ProductRepository;
+import com.side.shop.product.presentation.dto.CreateProductDto;
+import com.side.shop.product.presentation.dto.CreateProductOptionDto;
+import com.side.shop.product.presentation.dto.UpdateProductDto;
+import com.side.shop.product.presentation.dto.UpdateProductOptionDto;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class ProductService {
+
+    private final ProductRepository productRepository;
+
+    @Transactional
+    public Long createProduct(CreateProductDto dto) {
+        Product product = Product.create(dto.getName(), dto.getDescription());
+        productRepository.save(product);
+
+        return product.getId();
+    }
+
+    @Transactional
+    public Long createOptions(Long productId, List<CreateProductOptionDto> options) {
+        Product product = productRepository
+                .findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + productId));
+
+        for (CreateProductOptionDto option : options) {
+            ProductOption productOption =
+                    ProductOption.create(option.getSize(), option.getColor(), option.getStock(), option.getPrice());
+            product.addOption(productOption);
+        }
+        return productId;
+    }
+
+    @Transactional
+    public Long updateProduct(UpdateProductDto dto) {
+        Product product = productRepository
+                .findById(dto.getId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + dto.getId()));
+
+        product.updateInfo(dto.getName(), dto.getDescription());
+
+        return dto.getId();
+    }
+
+    @Transactional
+    public Long updateOptions(Long productId, List<UpdateProductOptionDto> options) {
+        Product product = productRepository
+                .findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + productId));
+
+        for (UpdateProductOptionDto option : options) {
+            product.getOption(option.getId())
+                    .updateInfo(option.getSize(), option.getColor(), option.getPrice(), option.getStock());
+        }
+
+        return productId;
+    }
+
+    @Transactional
+    public void deleteProduct(Long productId) {
+        productRepository.deleteById(productId);
+    }
+
+    @Transactional
+    public void deleteOptions(Long productId, List<Long> optionIds) {
+        Product product = productRepository
+                .findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + productId));
+
+        for (Long optionId : optionIds) {
+            ProductOption option = product.getOption(optionId);
+            product.removeOption(option);
+        }
+    }
+
+    public Product getProduct(Long productId) {
+        return productRepository
+                .findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + productId));
+    }
+
+    // %상품명% and 사이즈 and 색상 and 가격 range, 페이징 가능, 정렬 - 최신순, 가격순, 상품명순
+
+}

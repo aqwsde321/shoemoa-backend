@@ -1,11 +1,11 @@
 package com.side.shop.product.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductTest {
 
@@ -47,7 +47,7 @@ class ProductTest {
         assertThat(option.getProduct()).isEqualTo(product);
     }
 
-    //ReflectionTestUtils 사용
+    // ReflectionTestUtils 사용
     @Test
     @DisplayName("옵션 ID로 조회 성공 (Reflection 사용)")
     void get_option_success() {
@@ -75,7 +75,6 @@ class ProductTest {
 
         assertThatThrownBy(() -> product.getOption(999L))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("옵션 없음");
+                .hasMessage("존재하지 않는 옵션입니다.");
     }
-
 }
