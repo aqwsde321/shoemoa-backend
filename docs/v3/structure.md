@@ -1,5 +1,57 @@
 # 코드 작성 템플릿
 
+```angular2html
+src/main/java
+└── com.side.shop
+    ├── ShopApplication.java
+
+    ├── product
+    │   ├── presentation
+    │   │   └── ProductController.java
+    │   │
+    │   ├── application
+    │   │   └── ProductService.java
+    │   │
+    │   ├── domain
+    │   │   ├── Product.java
+    │   │   ├── ProductOption.java
+    │   │   ├── Color.java
+    │   │   └── exception
+    │   │       └── OutOfStockException.java
+    │   │
+    │   └── infrastructure
+    │       └── ProductRepository.java
+
+    ├── order
+    │   ├── presentation
+    │   │   └── OrderController.java
+    │   │
+    │   ├── application
+    │   │   └── OrderService.java
+    │   │
+    │   ├── domain
+    │   │   ├── Order.java
+    │   │   └── OrderStatus.java
+    │   │
+    │   └── infrastructure
+    │       └── OrderRepository.java
+
+    ├── member
+    │   ├── presentation
+    │   ├── application
+    │   ├── domain
+    │   │   └── Member.java
+    │   └── infrastructure
+
+    └── global
+        ├── exception
+        │   ├── GlobalExceptionHandler.java
+        │   └── ErrorResponse.java
+        │
+        └── config
+            └── JpaConfig.java
+```
+
 ## 1️⃣ Entity 작성
 
 ### 기본 템플릿
