@@ -7,8 +7,8 @@ import lombok.Data;
 public class ProductSearchCond {
 
     private String name;
-    private int size;
+    private Integer size;
     private String color;
-    private int minPrice;
-    private int maxPrice;
+    private Integer minPrice;
+    private Integer maxPrice;
 }
