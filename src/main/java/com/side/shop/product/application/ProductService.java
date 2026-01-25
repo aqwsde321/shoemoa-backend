@@ -21,7 +21,7 @@ public class ProductService {
 
     @Transactional
     public Long createProduct(CreateProductDto dto) {
-        Product product = Product.create(dto.getName(), dto.getDescription());
+        Product product = Product.create(dto.getName(), dto.getBrand(), dto.getDescription(), dto.getPrice());
         productRepository.save(product);
 
         return product.getId();
@@ -35,7 +35,7 @@ public class ProductService {
 
         for (CreateProductOptionDto option : options) {
             ProductOption productOption =
-                    ProductOption.create(option.getSize(), option.getColor(), option.getStock(), option.getPrice());
+                    ProductOption.create(option.getSize(), option.getColor(), option.getStock());
             product.addOption(productOption);
         }
         return productId;
@@ -60,7 +60,7 @@ public class ProductService {
 
         for (UpdateProductOptionDto option : options) {
             product.getOption(option.getId())
-                    .updateInfo(option.getSize(), option.getColor(), option.getPrice(), option.getStock());
+                    .updateInfo(option.getSize(), option.getColor(), option.getStock());
         }
 
         return productId;
@@ -88,7 +88,5 @@ public class ProductService {
                 .findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + productId));
     }
-
-    // %상품명% and 사이즈 and 색상 and 가격 range, 페이징 가능, 정렬 - 최신순, 가격순, 상품명순
 
 }

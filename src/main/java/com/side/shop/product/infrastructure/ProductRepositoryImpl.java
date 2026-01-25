@@ -2,6 +2,7 @@ package com.side.shop.product.infrastructure;
 
 import static com.side.shop.product.domain.QProduct.product;
 import static com.side.shop.product.domain.QProductOption.*;
+import static com.side.shop.product.presentation.dto.ProductSearchCond.SortType.LATEST;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -29,8 +30,11 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
     // 검색조건 - 상품명 and 사이즈 and 색상 and 가격
     // 정렬 - 최신순, 가격순, 상품명순
+    // OneToMany Collection 조회, default_batch_fetch_size 적용
     @Override
     public Page<Product> searchProducts(ProductSearchCond condition, Pageable pageable) {
+        //Fetch Join X
+        //Product 기준으로 페이징
         List<Product> content = jpaQueryFactory
                 .select(product).distinct()
                 .from(product)
@@ -40,7 +44,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                         productSizeEq(condition.getSize()),
                         productColorEq(condition.getColor()),
                         productPriceBetween(condition.getMinPrice(), condition.getMaxPrice()))
-                .orderBy(createOrder(pageable.getSort()))
+                .orderBy(getOrderSpecifier(condition.getSortType()))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -60,11 +64,11 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
     private BooleanExpression productPriceBetween(Integer minPrice, Integer maxPrice) {
         if (minPrice != null && maxPrice != null) {
-            return productOption.price.between(minPrice, maxPrice);
+            return product.price.between(minPrice, maxPrice);
         } else if (minPrice != null) {
-            return productOption.price.goe(minPrice);
+            return product.price.goe(minPrice);
         } else if (maxPrice != null) {
-            return productOption.price.loe(maxPrice);
+            return product.price.loe(maxPrice);
         }
         return null;
     }
@@ -81,6 +85,25 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         return StringUtils.hasText(productName) ? product.name.containsIgnoreCase(productName) : null;
     }
 
+    private OrderSpecifier<?> getOrderSpecifier(ProductSearchCond.SortType sortType) {
+        if (sortType == null) {
+            return product.createdAt.desc(); // 기본값: 최신순
+        }
+
+        switch (sortType) {
+            case LATEST:
+                return product.createdAt.desc();
+            case PRICE_ASC:
+                return product.price.asc();
+            case PRICE_DESC:
+                return product.price.desc();
+            case NAME_ASC:
+                return product.name.asc();
+            default:
+                return product.createdAt.desc();
+        }
+    }
+
     private OrderSpecifier<?> createOrder(Sort sort) {
         try {
             Sort.Order order = sort.iterator().next();
@@ -88,7 +111,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             Order direction = order.isAscending() ? Order.ASC : Order.DESC;
 
             return switch (order.getProperty()) {
-                case "price" -> new OrderSpecifier<>(direction, productOption.price);
+                case "price" -> new OrderSpecifier<>(direction, product.price);
                 case "name" -> new OrderSpecifier<>(direction, product.name);
                 case "createdAt" -> new OrderSpecifier<>(direction, product.createdAt); // 최신순용
                 default -> new OrderSpecifier<>(Order.DESC, product.createdAt);

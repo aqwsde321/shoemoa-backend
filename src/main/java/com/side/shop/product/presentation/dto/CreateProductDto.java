@@ -5,5 +5,7 @@ import lombok.Data;
 @Data
 public class CreateProductDto {
     private String name;
+    private String brand;
     private String description;
+    private int price;
 }

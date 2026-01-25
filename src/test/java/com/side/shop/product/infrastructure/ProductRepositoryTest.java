@@ -24,7 +24,7 @@ class ProductRepositoryTest {
     @DisplayName("상품 저장 및 조회")
     void save_and_find() {
         // given
-        Product product = Product.create("후드티", "따뜻한 후드티");
+        Product product = Product.create("아디다스 운동화", "아디다스", "따뜻한 신발입니다.", 50000);
         productRepository.save(product);
 
         // when
@@ -32,16 +32,16 @@ class ProductRepositoryTest {
 
         // then
         assertThat(findProduct).isEqualTo(product);
-        assertThat(findProduct.getName()).isEqualTo("후드티");
+        assertThat(findProduct.getName()).isEqualTo("아디다스 운동화");
     }
 
     @Test
     @DisplayName("상품과 옵션 함께 저장 (Cascade)")
     void save_with_options() {
         // given
-        Product product = Product.create("청바지", "스판 청바지");
-        ProductOption option1 = ProductOption.create(30, "Blue", 10, 30000);
-        ProductOption option2 = ProductOption.create(32, "Blue", 5, 30000);
+        Product product = Product.create("나이키 운동화", "나이키", "러닝화입니다.", 100000);
+        ProductOption option1 = ProductOption.create(30, "Blue", 10);
+        ProductOption option2 = ProductOption.create(32, "Blue", 5);
 
         product.addOption(option1);
         product.addOption(option2);
@@ -63,13 +63,13 @@ class ProductRepositoryTest {
     @DisplayName("상품, 옵션 모두 조회 (N+1 문제 확인 및 Fetch Join 테스트)")
     void fetch_join_test() {
         // given
-        Product product1 = Product.create("상품A", "상품A desc");
-        product1.addOption(ProductOption.create(1, "Red", 1, 1000));
-        product1.addOption(ProductOption.create(1, "Black", 3, 1000));
+        Product product1 = Product.create("상품A", "나이키", "상품A desc", 100000);
+        product1.addOption(ProductOption.create(1, "Red", 1));
+        product1.addOption(ProductOption.create(1, "Black", 3));
         productRepository.save(product1);
 
-        Product product2 = Product.create("상품B", "상품B desc");
-        product2.addOption(ProductOption.create(2, "Blue", 1, 2000));
+        Product product2 = Product.create("상품B", "아디다스", "상품B desc", 150000);
+        product2.addOption(ProductOption.create(2, "Blue", 1));
         productRepository.save(product2);
 
         em.flush();
