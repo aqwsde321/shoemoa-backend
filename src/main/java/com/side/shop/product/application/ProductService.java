@@ -3,12 +3,12 @@ package com.side.shop.product.application;
 import com.side.shop.product.domain.Product;
 import com.side.shop.product.domain.ProductOption;
 import com.side.shop.product.infrastructure.ProductRepository;
-import com.side.shop.product.presentation.dto.CreateProductDto;
-import com.side.shop.product.presentation.dto.CreateProductOptionDto;
-import com.side.shop.product.presentation.dto.UpdateProductDto;
-import com.side.shop.product.presentation.dto.UpdateProductOptionDto;
+import com.side.shop.product.presentation.dto.*;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +26,11 @@ public class ProductService {
 
         return product.getId();
     }
+
+    public Page<Product> searchProducts(ProductSearchCond condition, Pageable pageable) {
+        return productRepository.searchProducts(condition, pageable);
+    }
+
 
     @Transactional
     public Long createOptions(Long productId, List<CreateProductOptionDto> options) {
