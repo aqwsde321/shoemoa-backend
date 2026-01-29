@@ -1,0 +1,7 @@
+FROM postgres:15
+
+ENV POSTGRES_DB=shoemoa
+ENV POSTGRES_USER=shoemoa
+ENV POSTGRES_PASSWORD=shoemoa
+
+EXPOSE 5432
