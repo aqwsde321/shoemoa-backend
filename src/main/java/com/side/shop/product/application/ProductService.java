@@ -4,7 +4,6 @@ import com.side.shop.product.domain.Product;
 import com.side.shop.product.domain.ProductOption;
 import com.side.shop.product.infrastructure.ProductRepository;
 import com.side.shop.product.presentation.dto.*;
-
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,16 +20,18 @@ public class ProductService {
 
     @Transactional
     public Long createProduct(CreateProductDto dto) {
-        Product product = Product.create(dto.getName(), dto.getBrand(), dto.getDescription(), dto.getPrice());
+        Product product =
+                Product.create(dto.getName(), dto.getBrand(), dto.getDescription(), dto.getColor(), dto.getPrice());
         productRepository.save(product);
 
         return product.getId();
     }
 
-    public Page<Product> searchProducts(ProductSearchCond condition, Pageable pageable) {
-        return productRepository.searchProducts(condition, pageable);
-    }
+    public Page<ProductSearchResult> searchProducts(ProductSearchCond condition, Pageable pageable) {
+        Page<Product> page = productRepository.searchProducts(condition, pageable);
 
+        return page.map(ProductSearchResult::new);
+    }
 
     @Transactional
     public Long createOptions(Long productId, List<CreateProductOptionDto> options) {
@@ -39,8 +40,7 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + productId));
 
         for (CreateProductOptionDto option : options) {
-            ProductOption productOption =
-                    ProductOption.create(option.getSize(), option.getColor(), option.getStock());
+            ProductOption productOption = ProductOption.create(option.getSize(), option.getStock());
             product.addOption(productOption);
         }
         return productId;
@@ -64,8 +64,7 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + productId));
 
         for (UpdateProductOptionDto option : options) {
-            product.getOption(option.getId())
-                    .updateInfo(option.getSize(), option.getColor(), option.getStock());
+            product.getOption(option.getId()).updateInfo(option.getSize(), option.getStock());
         }
 
         return productId;
@@ -93,5 +92,4 @@ public class ProductService {
                 .findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. id=" + productId));
     }
-
 }

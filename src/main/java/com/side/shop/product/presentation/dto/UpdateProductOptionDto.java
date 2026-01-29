@@ -7,5 +7,4 @@ public class UpdateProductOptionDto {
     private Long id;
     private int size;
     private int stock;
-    private String color;
 }

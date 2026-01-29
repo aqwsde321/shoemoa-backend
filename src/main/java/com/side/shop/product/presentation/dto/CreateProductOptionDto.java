@@ -6,5 +6,4 @@ import lombok.Data;
 public class CreateProductOptionDto {
     private int size;
     private int stock;
-    private String color;
 }

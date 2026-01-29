@@ -20,26 +20,31 @@ public class Product extends BaseEntity {
     private String name;
     private String brand;
     private String description;
+    private String color;
     private int price;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductOption> options = new ArrayList<>();
 
     // 상품 생성
-    public static Product create(String name, String brand, String description, int price) {
+    public static Product create(String name, String brand, String description, String color, int price) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("상품명은 필수입니다.");
         }
         if (brand == null || brand.isBlank()) {
             throw new IllegalArgumentException("브랜드명은 필수입니다.");
         }
-        return new Product(name, brand, description, price);
+        if (color == null || color.isBlank()) {
+            throw new IllegalArgumentException("색상은 필수입니다.");
+        }
+        return new Product(name, brand, description, color, price);
     }
 
-    private Product(String name, String brand, String description, int price) {
+    private Product(String name, String brand, String description, String color, int price) {
         this.name = name;
         this.brand = brand;
         this.description = description;
+        this.color = color;
         this.price = price;
     }
 

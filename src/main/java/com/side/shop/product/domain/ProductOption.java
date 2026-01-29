@@ -20,17 +20,15 @@ public class ProductOption extends BaseEntity {
 
     private int size;
     private int stock;
-    private String color;
 
-    public static ProductOption create(int size, String color, int stock) {
+    public static ProductOption create(int size, int stock) {
         if (stock < 0) throw new IllegalArgumentException("재고는 0보다 작을 수 없습니다.");
 
-        return new ProductOption(size, color, stock);
+        return new ProductOption(size, stock);
     }
 
-    private ProductOption(int size, String color, int stock) {
+    private ProductOption(int size, int stock) {
         this.size = size;
-        this.color = color;
         this.stock = stock;
     }
 
@@ -49,10 +47,9 @@ public class ProductOption extends BaseEntity {
         stock += quantity;
     }
 
-    public void updateInfo(int size, String color, int stock) {
+    public void updateInfo(int size, int stock) {
         if (stock < 0) throw new IllegalArgumentException("재고는 0보다 작을 수 없습니다.");
         this.size = size;
-        this.color = color;
         this.stock = stock;
     }
 }

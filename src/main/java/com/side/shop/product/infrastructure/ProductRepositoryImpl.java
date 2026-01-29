@@ -33,15 +33,16 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     // OneToMany Collection 조회, default_batch_fetch_size 적용
     @Override
     public Page<Product> searchProducts(ProductSearchCond condition, Pageable pageable) {
-        //Fetch Join X
-        //Product 기준으로 페이징
+        // Fetch Join X
+        // Product 기준으로 페이징
         List<Product> content = jpaQueryFactory
-                .select(product).distinct()
+                .select(product)
+                .distinct()
                 .from(product)
                 .join(product.options, productOption)
                 .where(
                         productNameContains(condition.getName()),
-                        productSizeEq(condition.getSize()),
+                        productSizeEq(condition.getProductSize()),
                         productColorEq(condition.getColor()),
                         productPriceBetween(condition.getMinPrice(), condition.getMaxPrice()))
                 .orderBy(getOrderSpecifier(condition.getSortType()))
@@ -55,7 +56,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                 .join(product.options, productOption)
                 .where(
                         productNameContains(condition.getName()),
-                        productSizeEq(condition.getSize()),
+                        productSizeEq(condition.getProductSize()),
                         productColorEq(condition.getColor()),
                         productPriceBetween(condition.getMinPrice(), condition.getMaxPrice()));
 
@@ -74,7 +75,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     private BooleanExpression productColorEq(String color) {
-        return StringUtils.hasText(color) ? productOption.color.eq(color) : null;
+        return StringUtils.hasText(color) ? product.color.eq(color) : null;
     }
 
     private BooleanExpression productSizeEq(Integer size) {

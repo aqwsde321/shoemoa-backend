@@ -11,7 +11,7 @@ class ProductOptionTest {
     @Test
     @DisplayName("옵션 생성 실패 - 재고가 0보다 작으면 예외 발생")
     void create_option_fail() {
-        assertThatThrownBy(() -> ProductOption.create(100, "Red", -1))
+        assertThatThrownBy(() -> ProductOption.create(270, -1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("재고는 0보다 작을 수 없습니다.");
     }

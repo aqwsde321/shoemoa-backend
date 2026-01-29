@@ -12,7 +12,7 @@ class ProductTest {
     @Test
     @DisplayName("상품 생성 성공")
     void create_product_success() {
-        Product product = Product.create("나이키 운동화", "나이키", "편안한 운동화입니다.", 10000);
+        Product product = Product.create("나이키 운동화", "나이키", "편안한 운동화입니다.", "white", 200000);
 
         assertThat(product.getName()).isEqualTo("나이키 운동화");
         assertThat(product.getDescription()).isEqualTo("편안한 운동화입니다.");
@@ -22,11 +22,11 @@ class ProductTest {
     @Test
     @DisplayName("상품명이 비어있으면 생성 실패")
     void create_product_fail_empty_name() {
-        assertThatThrownBy(() -> Product.create(null, "나이키", "설명", 100000))
+        assertThatThrownBy(() -> Product.create(null, "나이키", "설명", "white", 100000))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("상품명은 필수입니다.");
 
-        assertThatThrownBy(() -> Product.create("", "나이키", "설명", 100000))
+        assertThatThrownBy(() -> Product.create("", "나이키", "설명", "white", 100000))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("상품명은 필수입니다.");
     }
@@ -35,8 +35,8 @@ class ProductTest {
     @DisplayName("옵션 추가 성공 - 양방향 연관관계 설정 확인")
     void add_option_success() {
         // given
-        Product product = Product.create("아디다스 운동화", "아디다스", "러닝화입니다.", 100000);
-        ProductOption option = ProductOption.create(95, "White", 100);
+        Product product = Product.create("아디다스 운동화", "아디다스", "러닝화입니다.", "white", 100000);
+        ProductOption option = ProductOption.create(95, 100);
 
         // when
         product.addOption(option);
@@ -52,8 +52,8 @@ class ProductTest {
     @DisplayName("옵션 ID로 조회 성공 (Reflection 사용)")
     void get_option_success() {
         // given
-        Product product = Product.create("상품", "브랜드", "설명", 1000);
-        ProductOption option = ProductOption.create(100, "Red", 10);
+        Product product = Product.create("상품", "브랜드", "설명", "white", 100000);
+        ProductOption option = ProductOption.create(100, 10);
 
         // 도메인 테스트에서는 DB가 없으므로 ID가 null입니다.
         // ReflectionTestUtils를 사용하여 강제로 ID를 주입해 테스트할 수 있습니다.
@@ -71,7 +71,7 @@ class ProductTest {
     @Test
     @DisplayName("존재하지 않는 옵션 ID 조회 시 예외 발생")
     void get_option_fail() {
-        Product product = Product.create("상품", "브랜드", "설명", 1000);
+        Product product = Product.create("상품", "브랜드", "설명", "white", 1000);
 
         assertThatThrownBy(() -> product.getOption(999L))
                 .isInstanceOf(IllegalArgumentException.class)
