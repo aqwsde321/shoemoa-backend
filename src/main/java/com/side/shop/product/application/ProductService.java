@@ -33,6 +33,13 @@ public class ProductService {
         return page.map(ProductSearchResult::new);
     }
 
+    public ProductDetailDto getProductDetail(Long productId) {
+        Product product = productRepository.findDetailById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+
+        return new ProductDetailDto(product);
+    }
+
     @Transactional
     public Long createOptions(Long productId, List<CreateProductOptionDto> options) {
         Product product = productRepository

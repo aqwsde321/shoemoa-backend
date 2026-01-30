@@ -92,4 +92,25 @@ class ProductRepositoryTest {
             }
         }
     }
+
+    @Test
+    @DisplayName("상품ID로 상품 상세 조회")
+    void get_product_detail() {
+        //given
+        Product product = Product.create("뉴발란스 860 V2 블랙", "뉴발란스", "상세 설명", "black", 169000);
+        Product savedProduct = productRepository.save(product);
+        ProductOption option1 = ProductOption.create(220, 10);
+        ProductOption option2 = ProductOption.create(230, 20);
+        ProductOption option3 = ProductOption.create(240, 30);
+        product.addOption(option1);
+        product.addOption(option2);
+        product.addOption(option3);
+
+        //when
+        Product productDetail = productRepository.findDetailById(product.getId()).orElseThrow();
+
+        //then
+        assertThat(productDetail.getId()).isEqualTo(savedProduct.getId());
+        assertThat(productDetail.getOptions().size()).isEqualTo(3);
+    }
 }

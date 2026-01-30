@@ -1,10 +1,7 @@
 package com.side.shop.product.presentation;
 
 import com.side.shop.product.application.ProductService;
-import com.side.shop.product.presentation.dto.CreateProductDto;
-import com.side.shop.product.presentation.dto.CreateProductResponseDto;
-import com.side.shop.product.presentation.dto.ProductSearchCond;
-import com.side.shop.product.presentation.dto.ProductSearchResult;
+import com.side.shop.product.presentation.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,5 +30,11 @@ public class ProductController {
         Page<ProductSearchResult> result = productService.searchProducts(condition, pageable);
 
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<ProductDetailDto> getProductDetail(@PathVariable Long productId) {
+        ProductDetailDto productDetail = productService.getProductDetail(productId);
+        return ResponseEntity.ok(productDetail);
     }
 }
