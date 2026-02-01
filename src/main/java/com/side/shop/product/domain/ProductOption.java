@@ -18,7 +18,7 @@ public class ProductOption extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Product product;
 
-    private int size;
+    private int productSize;
     private int stock;
 
     public static ProductOption create(int size, int stock) {
@@ -28,7 +28,7 @@ public class ProductOption extends BaseEntity {
     }
 
     private ProductOption(int size, int stock) {
-        this.size = size;
+        this.productSize = size;
         this.stock = stock;
     }
 
@@ -49,7 +49,7 @@ public class ProductOption extends BaseEntity {
 
     public void updateInfo(int size, int stock) {
         if (stock < 0) throw new IllegalArgumentException("재고는 0보다 작을 수 없습니다.");
-        this.size = size;
+        this.productSize = size;
         this.stock = stock;
     }
 }

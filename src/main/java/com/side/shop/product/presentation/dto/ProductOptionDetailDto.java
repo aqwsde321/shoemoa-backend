@@ -9,7 +9,7 @@ public class ProductOptionDetailDto {
     private int stock;
 
     public ProductOptionDetailDto(ProductOption productOption) {
-        this.size = productOption.getSize();
+        this.size = productOption.getProductSize();
         this.stock = productOption.getStock();
     }
 }

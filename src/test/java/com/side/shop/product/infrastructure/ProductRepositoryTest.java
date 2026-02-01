@@ -56,7 +56,7 @@ class ProductRepositoryTest {
 
         // then
         assertThat(findProduct.getOptions()).hasSize(2);
-        assertThat(findProduct.getOption(option1.getId()).getSize()).isEqualTo(220);
+        assertThat(findProduct.getOption(option1.getId()).getProductSize()).isEqualTo(220);
     }
 
     @Test
@@ -83,12 +83,12 @@ class ProductRepositoryTest {
         // then
         assertThat(products).hasSize(2);
         // 이미 로딩되었으므로 추가 쿼리 없이 접근 가능
-        assertThat(products.get(0).getOptions().get(0).getSize()).isEqualTo(220);
+        assertThat(products.get(0).getOptions().get(0).getProductSize()).isEqualTo(220);
 
         for (Product product : products) {
             System.out.println("product = " + product.getName());
             for (ProductOption option : product.getOptions()) {
-                System.out.println("option: size=" + option.getSize());
+                System.out.println("option: size=" + option.getProductSize());
             }
         }
     }
@@ -96,7 +96,7 @@ class ProductRepositoryTest {
     @Test
     @DisplayName("상품ID로 상품 상세 조회")
     void get_product_detail() {
-        //given
+        // given
         Product product = Product.create("뉴발란스 860 V2 블랙", "뉴발란스", "상세 설명", "black", 169000);
         Product savedProduct = productRepository.save(product);
         ProductOption option1 = ProductOption.create(220, 10);
@@ -106,10 +106,11 @@ class ProductRepositoryTest {
         product.addOption(option2);
         product.addOption(option3);
 
-        //when
-        Product productDetail = productRepository.findDetailById(product.getId()).orElseThrow();
+        // when
+        Product productDetail =
+                productRepository.findDetailById(product.getId()).orElseThrow();
 
-        //then
+        // then
         assertThat(productDetail.getId()).isEqualTo(savedProduct.getId());
         assertThat(productDetail.getOptions().size()).isEqualTo(3);
     }
