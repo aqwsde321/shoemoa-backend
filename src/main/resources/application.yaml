@@ -27,6 +27,9 @@ spring:
       stack:
         auto: false  # CloudFormation 비활성화
 
+cloudfront:
+  domain: d3to55zvtt5gof.cloudfront.net
+
 logging:
   level:
 #    org.hibernate.SQL: debug
