@@ -1,22 +1,24 @@
 package com.side.shop.common.infrastructure.s3;
 
+import com.side.shop.common.application.ImageUploader;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
+@Profile({"prod", "local"})
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class S3UploadService {
+public class S3UploadService implements ImageUploader {
 
     private final S3Client s3Client;
 
@@ -26,6 +28,7 @@ public class S3UploadService {
     @Value("${cloudfront.domain}")
     private String cloudFrontDomain;
 
+    @Override
     public List<String> uploadProductImages(Long productId, List<MultipartFile> files) {
         if (productId == null) {
             throw new IllegalArgumentException("productId는 필수입니다.");
@@ -34,18 +37,13 @@ public class S3UploadService {
             throw new IllegalArgumentException("업로드할 파일이 없습니다.");
         }
 
-        return files.stream()
-                .map(file -> uploadProductImage(productId, file))
-                .toList();
+        return files.stream().map(file -> uploadProductImage(productId, file)).toList();
     }
 
     private String uploadProductImage(Long productId, MultipartFile file) {
         validateImageFile(file);
 
-        String s3Key = generateProductImageKey(
-                productId,
-                extractExtension(file.getOriginalFilename())
-        );
+        String s3Key = generateProductImageKey(productId, extractExtension(file.getOriginalFilename()));
 
         try {
             PutObjectRequest request = PutObjectRequest.builder()
@@ -60,10 +58,7 @@ public class S3UploadService {
                     .contentType(file.getContentType())
                     .build();
 
-            s3Client.putObject(
-                    request,
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
-            );
+            s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
             return generateCloudFrontUrl(s3Key);
 
@@ -73,8 +68,7 @@ public class S3UploadService {
     }
 
     private String generateProductImageKey(Long productId, String extension) {
-        return "products/%d/images/%s%s"
-                .formatted(productId, UUID.randomUUID(), extension);
+        return "products/%d/images/%s%s".formatted(productId, UUID.randomUUID(), extension);
     }
 
     private String generateCloudFrontUrl(String s3Key) {
