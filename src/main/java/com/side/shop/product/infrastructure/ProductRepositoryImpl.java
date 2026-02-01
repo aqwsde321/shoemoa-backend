@@ -1,6 +1,7 @@
 package com.side.shop.product.infrastructure;
 
 import static com.side.shop.product.domain.QProduct.product;
+import static com.side.shop.product.domain.QProductImage.*;
 import static com.side.shop.product.domain.QProductOption.*;
 import static com.side.shop.product.presentation.dto.ProductSearchCond.SortType.LATEST;
 
@@ -9,8 +10,9 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.side.shop.product.domain.Product;
 import com.side.shop.product.presentation.dto.ProductSearchCond;
+import com.side.shop.product.presentation.dto.ProductSearchResult;
+import com.side.shop.product.presentation.dto.QProductSearchResult;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -30,16 +32,25 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
     // 검색조건 - 상품명 and 사이즈 and 색상 and 가격
     // 정렬 - 최신순, 가격순, 상품명순
-    // OneToMany Collection 조회, default_batch_fetch_size 적용
     @Override
-    public Page<Product> searchProducts(ProductSearchCond condition, Pageable pageable) {
+    public Page<ProductSearchResult> searchProducts(ProductSearchCond condition, Pageable pageable) {
         // Fetch Join X
         // Product 기준으로 페이징
-        List<Product> content = jpaQueryFactory
-                .select(product)
+        List<ProductSearchResult> content = jpaQueryFactory
+                .select(new QProductSearchResult(
+                        product.id,
+                        product.name,
+                        product.brand,
+                        product.description,
+                        product.color,
+                        product.price,
+                        productImage.imageUrl,
+                        product.createdAt))
                 .distinct()
                 .from(product)
-                .join(product.options, productOption)
+                .leftJoin(product.options, productOption)
+                .leftJoin(product.images, productImage)
+                .on(productImage.thumbnail.isTrue())
                 .where(
                         productNameContains(condition.getName()),
                         productSizeEq(condition.getProductSize()),
@@ -53,7 +64,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         JPAQuery<Long> countQuery = jpaQueryFactory
                 .select(product.id.countDistinct())
                 .from(product)
-                .join(product.options, productOption)
+                .leftJoin(product.options, productOption)
                 .where(
                         productNameContains(condition.getName()),
                         productSizeEq(condition.getProductSize()),
@@ -79,7 +90,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     }
 
     private BooleanExpression productSizeEq(Integer size) {
-        return size != null ? productOption.size.eq(size) : null;
+        return size != null ? productOption.productSize.eq(size) : null;
     }
 
     private BooleanExpression productNameContains(String productName) {

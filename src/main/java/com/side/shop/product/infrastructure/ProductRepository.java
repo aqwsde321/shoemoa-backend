@@ -3,7 +3,6 @@ package com.side.shop.product.infrastructure;
 import com.side.shop.product.domain.Product;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +14,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
     List<Product> findAllFetchJoin();
 
     // 상품 상세
-    @EntityGraph(attributePaths = "options")
+    @EntityGraph(attributePaths = {"options", "images"})
     Optional<Product> findDetailById(Long id);
 }

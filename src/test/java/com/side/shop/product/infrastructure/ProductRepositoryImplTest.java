@@ -4,15 +4,16 @@ import static com.side.shop.product.presentation.dto.ProductSearchCond.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.side.shop.product.domain.Product;
+import com.side.shop.product.domain.ProductImage;
 import com.side.shop.product.domain.ProductOption;
 import com.side.shop.product.presentation.dto.ProductSearchCond;
+import com.side.shop.product.presentation.dto.ProductSearchResult;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
-//@DataJpaTest
+// @DataJpaTest
 @SpringBootTest
 @Transactional
 class ProductRepositoryImplTest {
@@ -48,8 +49,12 @@ class ProductRepositoryImplTest {
             String color = (i % 2 == 0) ? "red" : "blue";
             Product product = Product.create("상품" + i, "나이키", "설명" + i, color, 1000 * i);
             // 각 상품마다 옵션 2개씩 추가
-            product.addOption(ProductOption.create(220, 10));
-            product.addOption(ProductOption.create(230, 10));
+            product.addOption(ProductOption.create(220, 20));
+            product.addOption(ProductOption.create(230, 30));
+            // 각 상품마다 이미지 3개씩 추가
+            List<String> imageUrls = List.of("https://fake/1.jpg", "https://fake/2.jpg", "https://fake/3.jpg");
+            product.addImages(imageUrls);
+
             productRepository.save(product);
         }
 
@@ -58,28 +63,32 @@ class ProductRepositoryImplTest {
         em.clear();
     }
 
-    @Test
-    @DisplayName("Batch Size 적용 확인 - 상품 조회 후 옵션 접근 시 IN 쿼리 발생")
-    void batch_size_test() {
-        // given
-        ProductSearchCond cond = new ProductSearchCond();
-        PageRequest pageRequest = PageRequest.of(0, 2);
-
-        // when
-        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
-        List<Product> products = result.getContent();
-
-        // then
-        assertThat(products).hasSize(2);
-
-        System.out.println("========== 옵션 접근 시작 ==========");
-        for (Product product : products) {
-            System.out.println("product.getName() = " + product.getName());
-            int optionSize = product.getOptions().size();
-            assertThat(optionSize).isEqualTo(2);
-        }
-        System.out.println("========== 옵션 접근 종료 ==========");
-    }
+    /**
+     * Projection(QueryDSL DTO 조회)에서는
+     * batch_size는 전혀 관여하지 않는다
+     */
+//    @Test
+//    @DisplayName("Batch Size 적용 확인 - 상품 조회 후 옵션 접근 시 IN 쿼리 발생")
+//    void batch_size_test() {
+//        // given
+//        ProductSearchCond cond = new ProductSearchCond();
+//        PageRequest pageRequest = PageRequest.of(0, 2);
+//
+//        // when
+//        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
+//        List<Product> products = result.getContent();
+//
+//        // then
+//        assertThat(products).hasSize(2);
+//
+//        System.out.println("========== 옵션 접근 시작 ==========");
+//        for (Product product : products) {
+//            System.out.println("product.getName() = " + product.getName());
+//            int optionSize = product.getOptions().size();
+//            assertThat(optionSize).isEqualTo(2);
+//        }
+//        System.out.println("========== 옵션 접근 종료 ==========");
+//    }
 
     @Test
     @DisplayName("상품명 검색 - '상품1' 검색 시 상품1, 상품10~15 조회")
@@ -91,7 +100,7 @@ class ProductRepositoryImplTest {
         PageRequest pageRequest = PageRequest.of(0, 20);
 
         // when
-        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
+        Page<ProductSearchResult> result = productRepository.searchProducts(cond, pageRequest);
 
         // then
         // 상품1, 10, 11, 12, 13, 14, 15 -> 총 7개
@@ -109,7 +118,7 @@ class ProductRepositoryImplTest {
         PageRequest pageRequest = PageRequest.of(0, 10);
 
         // when
-        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
+        Page<ProductSearchResult> result = productRepository.searchProducts(cond, pageRequest);
 
         // then
         // 2, 4, 6, 8, 10, 12, 14 -> 총 7개
@@ -128,7 +137,7 @@ class ProductRepositoryImplTest {
         PageRequest pageRequest = PageRequest.of(0, 20);
 
         // when
-        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
+        Page<ProductSearchResult> result = productRepository.searchProducts(cond, pageRequest);
 
         // then
         // 가격은 1000 * i
@@ -147,7 +156,7 @@ class ProductRepositoryImplTest {
         PageRequest pageRequest = PageRequest.of(0, 10);
 
         // when
-        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
+        Page<ProductSearchResult> result = productRepository.searchProducts(cond, pageRequest);
 
         // then
         assertThat(result.getContent()).hasSize(10);
@@ -168,7 +177,7 @@ class ProductRepositoryImplTest {
         PageRequest pageRequest = PageRequest.of(0, 10);
 
         // when
-        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
+        Page<ProductSearchResult> result = productRepository.searchProducts(cond, pageRequest);
 
         // then
         assertThat(result.getContent()).hasSize(5);

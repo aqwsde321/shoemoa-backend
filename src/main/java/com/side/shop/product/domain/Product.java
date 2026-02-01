@@ -3,7 +3,9 @@ package com.side.shop.product.domain;
 import com.side.shop.common.domain.BaseEntity;
 import jakarta.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,9 +26,14 @@ public class Product extends BaseEntity {
     private int price;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductOption> options = new ArrayList<>();
+    @OrderBy("sortOrder ASC")
+    private Set<ProductImage> images = new HashSet<>();
 
     // 상품 생성
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("productSize ASC")
+    private List<ProductOption> options = new ArrayList<>();
+
     public static Product create(String name, String brand, String description, String color, int price) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("상품명은 필수입니다.");
@@ -46,6 +53,19 @@ public class Product extends BaseEntity {
         this.description = description;
         this.color = color;
         this.price = price;
+    }
+
+    // 이미지 추가
+    // 연관관계 메서드
+    public void addImages(List<String> imageUrls) {
+        int start = images.size();
+        for (int i = 0; i < imageUrls.size(); i++) {
+            // 첫번째 이미지를 썸네일로
+            boolean thumbnail = i == 0;
+            ProductImage image = ProductImage.create(imageUrls.get(i), start + i, thumbnail);
+            image.assignProduct(this);
+            images.add(image);
+        }
     }
 
     // 옵션 추가

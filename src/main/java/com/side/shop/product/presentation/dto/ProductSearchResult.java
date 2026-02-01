@@ -1,6 +1,7 @@
 package com.side.shop.product.presentation.dto;
 
-import com.side.shop.product.domain.Product;
+import com.querydsl.core.annotations.QueryProjection;
+import java.time.LocalDateTime;
 import lombok.Data;
 
 @Data
@@ -11,13 +12,26 @@ public class ProductSearchResult {
     private String description;
     private String color;
     private int price;
+    private String thumbnailUrl;
+    private LocalDateTime createdAt;
 
-    public ProductSearchResult(Product product) {
-        this.id = product.getId();
-        this.name = product.getName();
-        this.brand = product.getBrand();
-        this.description = product.getDescription();
-        this.color = product.getColor();
-        this.price = product.getPrice();
+    @QueryProjection
+    public ProductSearchResult(
+            Long id,
+            String name,
+            String brand,
+            String description,
+            String color,
+            int price,
+            String thumbnailUrl,
+            LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.brand = brand;
+        this.description = description;
+        this.color = color;
+        this.price = price;
+        this.thumbnailUrl = thumbnailUrl;
+        this.createdAt = createdAt;
     }
 }

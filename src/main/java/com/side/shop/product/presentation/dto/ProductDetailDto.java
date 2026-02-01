@@ -1,11 +1,8 @@
 package com.side.shop.product.presentation.dto;
 
 import com.side.shop.product.domain.Product;
-import com.side.shop.product.domain.ProductOption;
-import lombok.Data;
-
-import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class ProductDetailDto {
@@ -15,6 +12,7 @@ public class ProductDetailDto {
     private int price;
 
     private List<ProductOptionDetailDto> options;
+    private List<ProductImageDto> images;
 
     public ProductDetailDto(Product product) {
         this.name = product.getName();
@@ -22,8 +20,8 @@ public class ProductDetailDto {
         this.color = product.getColor();
         this.price = product.getPrice();
 
-        this.options = product.getOptions().stream().map(ProductOptionDetailDto::new).toList();
-
+        this.images = product.getImages().stream().map(ProductImageDto::new).toList();
+        this.options =
+                product.getOptions().stream().map(ProductOptionDetailDto::new).toList();
     }
 }
-
