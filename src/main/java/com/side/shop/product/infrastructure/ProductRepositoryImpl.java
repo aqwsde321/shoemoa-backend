@@ -51,7 +51,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
                 .fetch();
 
         JPAQuery<Long> countQuery = jpaQueryFactory
-                .select(product.count())
+                .select(product.id.countDistinct())
                 .from(product)
                 .join(product.options, productOption)
                 .where(

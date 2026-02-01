@@ -7,7 +7,7 @@ spring:
     active: prod   # 기본 실행 프로파일
 
   jpa:
-    open-in-view: false   # ❗ 무조건 끄기 (CORE.md 스타일에 필수)
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
