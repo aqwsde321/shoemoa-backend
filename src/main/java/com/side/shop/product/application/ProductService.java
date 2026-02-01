@@ -1,5 +1,6 @@
 package com.side.shop.product.application;
 
+import com.side.shop.common.application.ImageUploader;
 import com.side.shop.product.domain.Product;
 import com.side.shop.product.domain.ProductOption;
 import com.side.shop.product.infrastructure.ProductRepository;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -17,24 +19,42 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ImageUploader imageUploader;
+
+    //    @Transactional
+    //    public Long createProduct(CreateProductDto dto) {
+    //        Product product =
+    //                Product.create(dto.getName(), dto.getBrand(), dto.getDescription(), dto.getColor(),
+    // dto.getPrice());
+    //        productRepository.save(product);
+    //
+    //        return product.getId();
+    //    }
 
     @Transactional
-    public Long createProduct(CreateProductDto dto) {
+    public Long createProduct(CreateProductDto dto, List<MultipartFile> images) {
+
         Product product =
                 Product.create(dto.getName(), dto.getBrand(), dto.getDescription(), dto.getColor(), dto.getPrice());
         productRepository.save(product);
+
+        // 1. S3 업로드
+        List<String> imageUrls = imageUploader.uploadProductImages(product.getId(), images);
+
+        // 2. Entity에 위임
+        product.addImages(imageUrls);
 
         return product.getId();
     }
 
     public Page<ProductSearchResult> searchProducts(ProductSearchCond condition, Pageable pageable) {
-        Page<Product> page = productRepository.searchProducts(condition, pageable);
 
-        return page.map(ProductSearchResult::new);
+        return productRepository.searchProducts(condition, pageable);
     }
 
     public ProductDetailDto getProductDetail(Long productId) {
-        Product product = productRepository.findDetailById(productId)
+        Product product = productRepository
+                .findDetailById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
         return new ProductDetailDto(product);
