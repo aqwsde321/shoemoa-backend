@@ -4,7 +4,6 @@ import static com.side.shop.product.presentation.dto.ProductSearchCond.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.side.shop.product.domain.Product;
-import com.side.shop.product.domain.ProductImage;
 import com.side.shop.product.domain.ProductOption;
 import com.side.shop.product.presentation.dto.ProductSearchCond;
 import com.side.shop.product.presentation.dto.ProductSearchResult;
@@ -19,7 +18,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
 // @DataJpaTest
@@ -67,28 +65,28 @@ class ProductRepositoryImplTest {
      * Projection(QueryDSL DTO 조회)에서는
      * batch_size는 전혀 관여하지 않는다
      */
-//    @Test
-//    @DisplayName("Batch Size 적용 확인 - 상품 조회 후 옵션 접근 시 IN 쿼리 발생")
-//    void batch_size_test() {
-//        // given
-//        ProductSearchCond cond = new ProductSearchCond();
-//        PageRequest pageRequest = PageRequest.of(0, 2);
-//
-//        // when
-//        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
-//        List<Product> products = result.getContent();
-//
-//        // then
-//        assertThat(products).hasSize(2);
-//
-//        System.out.println("========== 옵션 접근 시작 ==========");
-//        for (Product product : products) {
-//            System.out.println("product.getName() = " + product.getName());
-//            int optionSize = product.getOptions().size();
-//            assertThat(optionSize).isEqualTo(2);
-//        }
-//        System.out.println("========== 옵션 접근 종료 ==========");
-//    }
+    //    @Test
+    //    @DisplayName("Batch Size 적용 확인 - 상품 조회 후 옵션 접근 시 IN 쿼리 발생")
+    //    void batch_size_test() {
+    //        // given
+    //        ProductSearchCond cond = new ProductSearchCond();
+    //        PageRequest pageRequest = PageRequest.of(0, 2);
+    //
+    //        // when
+    //        Page<Product> result = productRepository.searchProducts(cond, pageRequest);
+    //        List<Product> products = result.getContent();
+    //
+    //        // then
+    //        assertThat(products).hasSize(2);
+    //
+    //        System.out.println("========== 옵션 접근 시작 ==========");
+    //        for (Product product : products) {
+    //            System.out.println("product.getName() = " + product.getName());
+    //            int optionSize = product.getOptions().size();
+    //            assertThat(optionSize).isEqualTo(2);
+    //        }
+    //        System.out.println("========== 옵션 접근 종료 ==========");
+    //    }
 
     @Test
     @DisplayName("상품명 검색 - '상품1' 검색 시 상품1, 상품10~15 조회")

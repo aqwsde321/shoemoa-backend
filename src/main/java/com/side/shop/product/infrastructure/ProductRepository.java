@@ -14,6 +14,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
     List<Product> findAllFetchJoin();
 
     // 상품 상세
-    @EntityGraph(attributePaths = {"options", "images"})
+    // List 컬렉션 2개 이상 X
+    @EntityGraph(attributePaths = {"options"})
     Optional<Product> findDetailById(Long id);
 }

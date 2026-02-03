@@ -2,7 +2,9 @@ package com.side.shop.product.application;
 
 import com.side.shop.common.application.ImageUploader;
 import com.side.shop.product.domain.Product;
+import com.side.shop.product.domain.ProductImage;
 import com.side.shop.product.domain.ProductOption;
+import com.side.shop.product.infrastructure.ProductImageRepository;
 import com.side.shop.product.infrastructure.ProductRepository;
 import com.side.shop.product.presentation.dto.*;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductImageRepository productImageRepository;
     private final ImageUploader imageUploader;
 
     //    @Transactional
@@ -57,7 +60,9 @@ public class ProductService {
                 .findDetailById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
-        return new ProductDetailDto(product);
+        List<ProductImage> images = productImageRepository.findByProductIdOrderBySortOrder(productId);
+
+        return ProductDetailDto.of(product, images);
     }
 
     @Transactional
