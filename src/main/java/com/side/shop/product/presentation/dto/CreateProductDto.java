@@ -3,6 +3,8 @@ package com.side.shop.product.presentation.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @NoArgsConstructor
 @Data
 public class CreateProductDto {
@@ -11,6 +13,8 @@ public class CreateProductDto {
     private String description;
     private String color;
     private int price;
+
+    private List<CreateProductOptionDto> options;
 
     public CreateProductDto(String name, String brand, String description, String color, int price) {
         this.name = name;

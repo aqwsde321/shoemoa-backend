@@ -31,6 +31,7 @@ public class ProductDetailDto {
 
         dto.name = product.getName();
         dto.brand = product.getBrand();
+        dto.color = product.getColor();
         dto.price = product.getPrice();
 
         dto.options =

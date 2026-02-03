@@ -8,6 +8,8 @@ import com.side.shop.product.infrastructure.ProductImageRepository;
 import com.side.shop.product.infrastructure.ProductRepository;
 import com.side.shop.product.presentation.dto.*;
 import java.util.List;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,11 +38,23 @@ public class ProductService {
 
     @Transactional
     public Long createProduct(CreateProductDto dto, List<MultipartFile> images) {
-
         Product product =
                 Product.create(dto.getName(), dto.getBrand(), dto.getDescription(), dto.getColor(), dto.getPrice());
+        //NPE 방어
+        List<CreateProductOptionDto> options =
+                Optional.ofNullable(dto.getOptions()).orElse(List.of());
+        for (CreateProductOptionDto option : options) {
+            product.addOption(ProductOption.create(option.getSize(), option.getStock()));
+        }
         productRepository.save(product);
 
+        /* TODO
+         * S3 업로드는 트랜잭션 롤백 대상이 아님
+         * 중간에 S3는 성공했는데 DB가 롤백되면 S3에 고아 이미지 남음
+         * - 실패하면 그냥 전체 실패로 보고 수동 정리
+         * - 이미지 업로드를 트랜잭션 밖에서
+         * - 이벤트 기반(@TransactionalEventListener(AFTER_COMMIT))
+         */
         // 1. S3 업로드
         List<String> imageUrls = imageUploader.uploadProductImages(product.getId(), images);
 

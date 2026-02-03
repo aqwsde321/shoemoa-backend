@@ -30,9 +30,9 @@ public class ProductController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateProductResponseDto> createProduct(
-            @RequestPart("data") String productJson, @RequestPart("images") List<MultipartFile> images)
-            throws JsonProcessingException {
-        CreateProductDto dto = new ObjectMapper().readValue(productJson, CreateProductDto.class);
+            @RequestPart("data") CreateProductDto dto,
+            @RequestPart("images") List<MultipartFile> images)
+    {
         Long productId = productService.createProduct(dto, images);
         return ResponseEntity.ok(new CreateProductResponseDto(productId));
     }
