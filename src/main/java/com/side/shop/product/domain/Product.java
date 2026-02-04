@@ -1,16 +1,18 @@
 package com.side.shop.product.domain;
 
+import static jakarta.persistence.CascadeType.*;
+import static lombok.AccessLevel.*;
+
 import com.side.shop.common.domain.BaseEntity;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = PROTECTED)
 public class Product extends BaseEntity {
 
     @Id
@@ -23,11 +25,11 @@ public class Product extends BaseEntity {
     private String color;
     private int price;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC")
     private List<ProductImage> images = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = ALL, orphanRemoval = true)
     @OrderBy("productSize ASC")
     private List<ProductOption> options = new ArrayList<>();
 

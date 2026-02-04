@@ -1,21 +1,23 @@
 package com.side.shop.product.domain;
 
+import static jakarta.persistence.FetchType.*;
+import static lombok.AccessLevel.*;
+
 import com.side.shop.common.domain.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = PROTECTED)
 public class ProductOption extends BaseEntity {
 
     @Id
     @GeneratedValue
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     private Product product;
 
     private int productSize;

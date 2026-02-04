@@ -9,7 +9,6 @@ import com.side.shop.product.infrastructure.ProductRepository;
 import com.side.shop.product.presentation.dto.*;
 import java.util.List;
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +39,7 @@ public class ProductService {
     public Long createProduct(CreateProductDto dto, List<MultipartFile> images) {
         Product product =
                 Product.create(dto.getName(), dto.getBrand(), dto.getDescription(), dto.getColor(), dto.getPrice());
-        //NPE 방어
+        // NPE 방어
         List<CreateProductOptionDto> options =
                 Optional.ofNullable(dto.getOptions()).orElse(List.of());
         for (CreateProductOptionDto option : options) {

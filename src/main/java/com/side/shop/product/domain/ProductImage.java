@@ -1,20 +1,22 @@
 package com.side.shop.product.domain;
 
+import static jakarta.persistence.FetchType.*;
+import static lombok.AccessLevel.PROTECTED;
+
 import com.side.shop.common.domain.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = PROTECTED)
 public class ProductImage extends BaseEntity {
     @Id
     @GeneratedValue
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     private Product product;
 
     private String imageUrl;

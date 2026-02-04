@@ -3,7 +3,6 @@ package com.side.shop.product.infrastructure;
 import static com.side.shop.product.domain.QProduct.product;
 import static com.side.shop.product.domain.QProductImage.*;
 import static com.side.shop.product.domain.QProductOption.*;
-import static com.side.shop.product.presentation.dto.ProductSearchCond.SortType.LATEST;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;

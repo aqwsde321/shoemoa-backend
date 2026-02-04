@@ -1,7 +1,5 @@
 package com.side.shop.product.presentation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.side.shop.product.application.ProductService;
 import com.side.shop.product.presentation.dto.*;
 import java.util.List;
@@ -30,9 +28,7 @@ public class ProductController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateProductResponseDto> createProduct(
-            @RequestPart("data") CreateProductDto dto,
-            @RequestPart("images") List<MultipartFile> images)
-    {
+            @RequestPart("data") CreateProductDto dto, @RequestPart("images") List<MultipartFile> images) {
         Long productId = productService.createProduct(dto, images);
         return ResponseEntity.ok(new CreateProductResponseDto(productId));
     }
