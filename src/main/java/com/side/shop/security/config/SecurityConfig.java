@@ -65,18 +65,9 @@ public class SecurityConfig {
                         .permitAll()
 
                         // Product 조회는 누구나 가능
-                        .requestMatchers(HttpMethod.GET, "/api/products/**")
-                        .permitAll()
-
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         // Product CUD는 ADMIN만 가능
-                        .requestMatchers(HttpMethod.POST, "/api/products/**")
-                        .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**")
-                        .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/products/**")
-                        .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers("/api/products/**").hasRole("ADMIN")
 
                         // 나머지는 인증 필요
                         .anyRequest()
