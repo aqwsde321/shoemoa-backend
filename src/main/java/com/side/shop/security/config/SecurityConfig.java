@@ -65,19 +65,22 @@ public class SecurityConfig {
                         .permitAll()
 
                         // Product 조회는 누구나 가능
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**")
+                        .permitAll()
                         // Product CUD는 ADMIN만 가능
-                        .requestMatchers("/api/products/**").hasRole("ADMIN")
+                        .requestMatchers("/api/products/**")
+                        .hasRole("ADMIN")
 
                         // 나머지는 인증 필요
                         .anyRequest()
                         .authenticated())
 
                 // 인증 / 인가 과정에서 발생하는 예외 처리 설정
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint()) //[401 Unauthorized]: 너 누구냐?
-                        .accessDeniedHandler(accessDeniedHandler()) // [403 Forbidden]: 누군지는 아는데 권한이 없다
-                )
+                .exceptionHandling(
+                        exception -> exception
+                                .authenticationEntryPoint(authenticationEntryPoint()) // [401 Unauthorized]: 너 누구냐?
+                                .accessDeniedHandler(accessDeniedHandler()) // [403 Forbidden]: 누군지는 아는데 권한이 없다
+                        )
 
                 // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 앞에)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
