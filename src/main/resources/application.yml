@@ -3,6 +3,9 @@ spring:
     name: shoe-moa
   profiles:
     active: prod   # 기본 실행 프로파일
+  output:
+    ansi:
+      enabled: always
   servlet:
     multipart:
       max-file-size: 10MB
@@ -42,4 +45,12 @@ springdoc:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000  # 1시간 (밀리초 단위)
+
+
+app:
+  admin:
+    initial-password: ${ADMIN_PW}
+  cors:
+    allowed-origins: http://localhost:3000
+
 

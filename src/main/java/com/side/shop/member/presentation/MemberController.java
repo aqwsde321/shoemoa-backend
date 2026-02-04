@@ -1,9 +1,9 @@
 package com.side.shop.member.presentation;
 
 import com.side.shop.member.application.MemberService;
-import com.side.shop.member.presentation.dto.LoginRequest;
-import com.side.shop.member.presentation.dto.LoginResponse;
-import com.side.shop.member.presentation.dto.SignupRequest;
+import com.side.shop.member.presentation.dto.LoginRequestDto;
+import com.side.shop.member.presentation.dto.LoginResponseDto;
+import com.side.shop.member.presentation.dto.SignupRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -23,15 +23,15 @@ public class MemberController {
 
     @Operation(summary = "회원가입", description = "이메일과 비밀번호로 회원가입합니다.")
     @PostMapping("/signup")
-    public ResponseEntity<Map<String, String>> signup(@Valid @RequestBody SignupRequest request) {
+    public ResponseEntity<Map<String, String>> signup(@Valid @RequestBody SignupRequestDto request) {
         memberService.signup(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "회원가입이 완료되었습니다."));
     }
 
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하여 JWT 토큰을 발급받습니다.")
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse response = memberService.login(request);
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
+        LoginResponseDto response = memberService.login(request);
         return ResponseEntity.ok(response);
     }
 }

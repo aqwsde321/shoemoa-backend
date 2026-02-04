@@ -5,9 +5,9 @@ import com.side.shop.member.exception.DuplicateEmailException;
 import com.side.shop.member.exception.InvalidCredentialsException;
 import com.side.shop.member.exception.MemberNotFoundException;
 import com.side.shop.member.infrastructure.MemberRepository;
-import com.side.shop.member.presentation.dto.LoginRequest;
-import com.side.shop.member.presentation.dto.LoginResponse;
-import com.side.shop.member.presentation.dto.SignupRequest;
+import com.side.shop.member.presentation.dto.LoginRequestDto;
+import com.side.shop.member.presentation.dto.LoginResponseDto;
+import com.side.shop.member.presentation.dto.SignupRequestDto;
 import com.side.shop.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,7 +27,7 @@ public class MemberService {
      * 회원가입
      */
     @Transactional
-    public void signup(SignupRequest request) {
+    public void signup(SignupRequestDto request) {
         // 1. 중복 이메일 검증
         if (memberRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateEmailException(request.getEmail());
@@ -43,7 +43,7 @@ public class MemberService {
     /**
      * 로그인
      */
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponseDto login(LoginRequestDto request) {
         // 1. 회원 조회
         Member member =
                 memberRepository.findByEmail(request.getEmail()).orElseThrow(() -> new InvalidCredentialsException());
@@ -58,7 +58,7 @@ public class MemberService {
                 member.getEmail(), member.getRole().name());
 
         // 4. 응답 DTO 생성
-        return new LoginResponse(
+        return new LoginResponseDto(
                 accessToken, member.getEmail(), member.getRole().name());
     }
 
