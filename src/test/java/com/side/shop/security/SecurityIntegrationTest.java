@@ -4,9 +4,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.side.shop.member.presentation.dto.LoginRequest;
-import com.side.shop.member.presentation.dto.LoginResponse;
-import com.side.shop.member.presentation.dto.SignupRequest;
+import com.side.shop.member.presentation.dto.LoginRequestDto;
+import com.side.shop.member.presentation.dto.LoginResponseDto;
+import com.side.shop.member.presentation.dto.SignupRequestDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,21 +33,21 @@ class SecurityIntegrationTest {
     @DisplayName("일반 회원은 상품 등록이 불가능하다")
     void user_CannotCreateProduct() throws Exception {
         // given - 일반 회원 가입 및 로그인
-        SignupRequest signupRequest = new SignupRequest("user@example.com", "password123");
+        SignupRequestDto signupRequestDto = new SignupRequestDto("user@example.com", "password123");
         mockMvc.perform(post("/api/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(signupRequest)));
+                .content(objectMapper.writeValueAsString(signupRequestDto)));
 
-        LoginRequest loginRequest = new LoginRequest("user@example.com", "password123");
+        LoginRequestDto loginRequestDto = new LoginRequestDto("user@example.com", "password123");
         MvcResult loginResult = mockMvc.perform(post("/api/members/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
+                        .content(objectMapper.writeValueAsString(loginRequestDto)))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String responseBody = loginResult.getResponse().getContentAsString();
-        LoginResponse loginResponse = objectMapper.readValue(responseBody, LoginResponse.class);
-        String userToken = loginResponse.getAccessToken();
+        LoginResponseDto loginResponseDto = objectMapper.readValue(responseBody, LoginResponseDto.class);
+        String userToken = loginResponseDto.getAccessToken();
 
         // when & then - 상품 등록 시도 (권한 없음)
         String productJson =

@@ -1,5 +1,6 @@
 package com.side.shop.member.domain;
 
+import com.side.shop.common.domain.BaseEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -8,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Getter
 @Entity
 @Table(name = "members")
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,38 +34,27 @@ public class Member {
     @Column
     private LocalDateTime tokenExpiresAt;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
     protected Member() {
         // JPA를 위한 기본 생성자
     }
 
+    private Member(String email, String password, MemberRole role, boolean emailVerified) {
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.emailVerified = emailVerified;
+    }
+
     // 일반 회원 생성 (정적 팩토리 메서드)
     public static Member createUser(String email, String rawPassword, PasswordEncoder passwordEncoder) {
-        Member member = new Member();
-        member.email = email;
-        member.password = passwordEncoder.encode(rawPassword);
-        member.role = MemberRole.USER;
-        member.emailVerified = false;
-        member.createdAt = LocalDateTime.now();
-        member.updatedAt = LocalDateTime.now();
-        return member;
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        return new Member(email, encodedPassword, MemberRole.USER, false);
     }
 
     // 관리자 생성 (정적 팩토리 메서드)
     public static Member createAdmin(String email, String rawPassword, PasswordEncoder passwordEncoder) {
-        Member member = new Member();
-        member.email = email;
-        member.password = passwordEncoder.encode(rawPassword);
-        member.role = MemberRole.ADMIN;
-        member.emailVerified = true; // 관리자는 인증 불필요
-        member.createdAt = LocalDateTime.now();
-        member.updatedAt = LocalDateTime.now();
-        return member;
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        return new Member(email, encodedPassword, MemberRole.ADMIN, true);
     }
 
     // 비즈니스 로직: 비밀번호 검증
@@ -75,7 +65,6 @@ public class Member {
     // 비즈니스 로직: 비밀번호 변경
     public void changePassword(String newRawPassword, PasswordEncoder passwordEncoder) {
         this.password = passwordEncoder.encode(newRawPassword);
-        this.updatedAt = LocalDateTime.now();
     }
 
     // 비즈니스 로직: 이메일 인증 (추후 사용)
@@ -86,13 +75,11 @@ public class Member {
         this.emailVerified = true;
         this.verificationToken = null;
         this.tokenExpiresAt = null;
-        this.updatedAt = LocalDateTime.now();
     }
 
     // 비즈니스 로직: 인증 토큰 생성 (추후 사용)
     public void generateVerificationToken(String token, int expirationHours) {
         this.verificationToken = token;
         this.tokenExpiresAt = LocalDateTime.now().plusHours(expirationHours);
-        this.updatedAt = LocalDateTime.now();
     }
 }

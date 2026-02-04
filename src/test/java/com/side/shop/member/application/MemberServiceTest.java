@@ -7,9 +7,9 @@ import com.side.shop.member.domain.MemberRole;
 import com.side.shop.member.exception.DuplicateEmailException;
 import com.side.shop.member.exception.InvalidCredentialsException;
 import com.side.shop.member.infrastructure.MemberRepository;
-import com.side.shop.member.presentation.dto.LoginRequest;
-import com.side.shop.member.presentation.dto.LoginResponse;
-import com.side.shop.member.presentation.dto.SignupRequest;
+import com.side.shop.member.presentation.dto.LoginRequestDto;
+import com.side.shop.member.presentation.dto.LoginResponseDto;
+import com.side.shop.member.presentation.dto.SignupRequestDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ class MemberServiceTest {
     @DisplayName("회원가입이 성공하면 DB에 저장된다")
     void signup_Success() {
         // given
-        SignupRequest request = new SignupRequest("newuser@example.com", "password123");
+        SignupRequestDto request = new SignupRequestDto("newuser@example.com", "password123");
 
         // when
         memberService.signup(request);
@@ -46,10 +46,10 @@ class MemberServiceTest {
     @DisplayName("중복된 이메일로 회원가입 시 예외가 발생한다")
     void signup_DuplicateEmail() {
         // given
-        SignupRequest request1 = new SignupRequest("duplicate@example.com", "password123");
+        SignupRequestDto request1 = new SignupRequestDto("duplicate@example.com", "password123");
         memberService.signup(request1);
 
-        SignupRequest request2 = new SignupRequest("duplicate@example.com", "password456");
+        SignupRequestDto request2 = new SignupRequestDto("duplicate@example.com", "password456");
 
         // when & then
         assertThatThrownBy(() -> memberService.signup(request2))
@@ -61,13 +61,13 @@ class MemberServiceTest {
     @DisplayName("올바른 이메일과 비밀번호로 로그인하면 JWT를 받는다")
     void login_Success() {
         // given
-        SignupRequest signupRequest = new SignupRequest("loginuser@example.com", "password123");
-        memberService.signup(signupRequest);
+        SignupRequestDto signupRequestDto = new SignupRequestDto("loginuser@example.com", "password123");
+        memberService.signup(signupRequestDto);
 
-        LoginRequest loginRequest = new LoginRequest("loginuser@example.com", "password123");
+        LoginRequestDto loginRequestDto = new LoginRequestDto("loginuser@example.com", "password123");
 
         // when
-        LoginResponse response = memberService.login(loginRequest);
+        LoginResponseDto response = memberService.login(loginRequestDto);
 
         // then
         assertThat(response.getAccessToken()).isNotNull();
@@ -79,7 +79,7 @@ class MemberServiceTest {
     @DisplayName("존재하지 않는 이메일로 로그인 시 예외가 발생한다")
     void login_EmailNotFound() {
         // given
-        LoginRequest request = new LoginRequest("nonexistent@example.com", "password123");
+        LoginRequestDto request = new LoginRequestDto("nonexistent@example.com", "password123");
 
         // when & then
         assertThatThrownBy(() -> memberService.login(request)).isInstanceOf(InvalidCredentialsException.class);
@@ -89,12 +89,12 @@ class MemberServiceTest {
     @DisplayName("잘못된 비밀번호로 로그인 시 예외가 발생한다")
     void login_WrongPassword() {
         // given
-        SignupRequest signupRequest = new SignupRequest("user@example.com", "password123");
-        memberService.signup(signupRequest);
+        SignupRequestDto signupRequestDto = new SignupRequestDto("user@example.com", "password123");
+        memberService.signup(signupRequestDto);
 
-        LoginRequest loginRequest = new LoginRequest("user@example.com", "wrongpassword");
+        LoginRequestDto loginRequestDto = new LoginRequestDto("user@example.com", "wrongpassword");
 
         // when & then
-        assertThatThrownBy(() -> memberService.login(loginRequest)).isInstanceOf(InvalidCredentialsException.class);
+        assertThatThrownBy(() -> memberService.login(loginRequestDto)).isInstanceOf(InvalidCredentialsException.class);
     }
 }
