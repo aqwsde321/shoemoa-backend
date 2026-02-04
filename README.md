@@ -52,9 +52,9 @@ Shoemoa 백엔드 시스템은 도메인 주도 설계(DDD) 원칙에 따라 개
 
 ### Phase 1: 핵심 도메인 구현 (Product & Member)
 - **[v] 상품(Product) 도메인**: 상품 등록, 조회, 수정, 삭제 API 구현
-- **[ ] 회원(Member) 도메인**:
-    -   `[ ]` 회원가입, 로그인, 정보 수정 API 구현
-    -   `[ ]` Spring Security와 JWT를 활용한 인증/인가 구현
+- **[v] 회원(Member) 도메인**:
+    -   `[v]` 회원가입, 로그인, 정보 수정 API 구현
+    -   `[v]` Spring Security와 JWT를 활용한 인증/인가 구현
 
 ### Phase 2: 주문 및 결제 기능 (Order & Payment)
 - **[ ] 장바구니(Cart) 기능**:
