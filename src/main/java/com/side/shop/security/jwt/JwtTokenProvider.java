@@ -1,14 +1,14 @@
 package com.side.shop.security.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class JwtTokenProvider {
 
@@ -73,10 +73,16 @@ public class JwtTokenProvider {
         try {
             parseClaims(token);
             return true;
-        } catch (Exception e) {
-            // 토큰 파싱 실패 (만료, 서명 오류 등)
-            return false;
+        } catch (ExpiredJwtException ex) {
+            log.warn("Expired JWT token: {}", ex.getMessage());
+        } catch (UnsupportedJwtException ex) {
+            log.warn("Unsupported JWT token: {}", ex.getMessage());
+        } catch (io.jsonwebtoken.security.SecurityException | IllegalArgumentException ex) {
+            log.warn("Invalid JWT signature/claims: {}", ex.getMessage());
+        } catch (JwtException ex) {
+            log.warn("Invalid JWT token: {}", ex.getMessage());
         }
+        return false;
     }
 
     /**
