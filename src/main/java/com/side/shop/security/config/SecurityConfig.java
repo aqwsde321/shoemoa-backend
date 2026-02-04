@@ -72,10 +72,12 @@ public class SecurityConfig {
                         // 나머지는 인증 필요
                         .anyRequest()
                         .authenticated())
-                // 인증 실패 처리 (401 반환)
+
+                // 인증 / 인가 과정에서 발생하는 예외 처리 설정
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint())
-                        .accessDeniedHandler(accessDeniedHandler()))
+                        .authenticationEntryPoint(authenticationEntryPoint()) //[401 Unauthorized]: 너 누구냐?
+                        .accessDeniedHandler(accessDeniedHandler()) // [403 Forbidden]: 누군지는 아는데 권한이 없다
+                )
 
                 // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 앞에)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -85,6 +87,13 @@ public class SecurityConfig {
 
     /**
      * 인증 실패 시 401 Unauthorized 반환
+     *  호출 조건:
+     *  1. Authorization 헤더 자체가 없음
+     *  2. JWT 토큰이 만료됨
+     *  3. JWT 서명 검증 실패
+     *  4. 인증 객체(SecurityContext)에 Authentication 이 없음
+     *
+     *  즉, "너 누구냐?" 상태
      */
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
@@ -96,6 +105,12 @@ public class SecurityConfig {
 
     /**
      * 권한 없음 시 403 Forbidden 반환
+     *  호출 조건:
+     *  1. JWT 토큰은 유효함 (인증 성공)
+     *  2. 하지만 요청한 리소스에 필요한 권한이 없음
+     *     예) USER 권한으로 ADMIN API 접근
+     *
+     *  즉, "누군지는 아는데 권한이 없다"
      */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
