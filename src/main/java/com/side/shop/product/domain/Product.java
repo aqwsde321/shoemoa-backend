@@ -27,7 +27,6 @@ public class Product extends BaseEntity {
     @OrderBy("sortOrder ASC")
     private List<ProductImage> images = new ArrayList<>();
 
-    // 상품 생성
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("productSize ASC")
     private List<ProductOption> options = new ArrayList<>();
