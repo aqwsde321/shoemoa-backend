@@ -43,3 +43,11 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000  # 1시간 (밀리초 단위)
 
+
+app:
+  admin:
+    initial-password: ${ADMIN_PW}
+  cors:
+    allowed-origins: http://localhost:3000
+
+

@@ -4,6 +4,7 @@ import com.side.shop.member.domain.Member;
 import com.side.shop.member.infrastructure.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +18,9 @@ public class AdminInitializer implements ApplicationRunner {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.admin.initial-password}")
+    private String adminInitialPassword;
 
     @Override
     @Transactional
@@ -32,11 +36,11 @@ public class AdminInitializer implements ApplicationRunner {
         // 관리자 계정 생성
         Member admin = Member.createAdmin(
                 adminEmail,
-                "admin1234", // 실제 운영에서는 환경 변수로 관리
+                adminInitialPassword, // 실제 운영에서는 환경 변수로 관리
                 passwordEncoder);
 
         memberRepository.save(admin);
         log.info("관리자 계정이 생성되었습니다: {}", adminEmail);
-        log.info("초기 비밀번호: admin1234 (반드시 변경하세요!)");
+        log.info("초기 비밀번호: {} (반드시 변경하세요!)", adminInitialPassword);
     }
 }
