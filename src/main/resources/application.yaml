@@ -3,6 +3,9 @@ spring:
     name: shoe-moa
   profiles:
     active: prod   # 기본 실행 프로파일
+  output:
+    ansi:
+      enabled: always
   servlet:
     multipart:
       max-file-size: 10MB
