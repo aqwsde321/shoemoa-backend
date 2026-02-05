@@ -31,14 +31,6 @@ class ProductRepositoryImplTest {
     @Autowired
     private EntityManager em;
 
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public ProductRepositoryImpl productRepositoryImpl(EntityManager em) {
-            return new ProductRepositoryImpl(em);
-        }
-    }
-
     @BeforeEach
     void setUp() {
         // 테스트 데이터 셋업
