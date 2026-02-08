@@ -246,7 +246,8 @@ class SecurityIntegrationTest {
                         .file(data)
                         .file(image)
                         .header("Authorization", "Bearer " + expiredAccessToken))
-                .andExpect(status().isUnauthorized()); // 401 Unauthorized
+                .andExpect(status().isUnauthorized()) // 401 Unauthorized
+                .andExpect(jsonPath("$.code").value("TOKEN_EXPIRED")); // ⭐️ 에러 코드가 TOKEN_EXPIRED 인지 검증
 
         // when - 2. Refresh Token으로 Access Token 재발급
         MvcResult reissueResult = mockMvc.perform(post("/api/members/reissue").cookie(refreshTokenCookie)) // 쿠키 전송
