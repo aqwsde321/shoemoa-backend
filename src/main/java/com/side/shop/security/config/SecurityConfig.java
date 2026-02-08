@@ -5,10 +5,10 @@ import com.side.shop.common.exception.ErrorResponse;
 import com.side.shop.security.jwt.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays; // Added for String.split
+import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value; // Added import
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -99,6 +99,12 @@ public class SecurityConfig {
 
             if ("EXPIRED_TOKEN".equals(exception)) {
                 ErrorResponse errorResponse = new ErrorResponse("TOKEN_EXPIRED", "Access Token이 만료되었습니다.");
+                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, errorResponse);
+            } else if ("INVALID_TOKEN".equals(exception)) {
+                ErrorResponse errorResponse = new ErrorResponse("INVALID_TOKEN", "유효하지 않은 토큰입니다.");
+                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, errorResponse);
+            } else if ("UNSUPPORTED_TOKEN".equals(exception)) {
+                ErrorResponse errorResponse = new ErrorResponse("UNSUPPORTED_TOKEN", "지원되지 않는 토큰 형식입니다.");
                 sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, errorResponse);
             } else {
                 ErrorResponse errorResponse = new ErrorResponse("UNAUTHORIZED", "인증이 필요합니다.");

@@ -13,6 +13,7 @@ import com.side.shop.security.auth.RefreshToken;
 import com.side.shop.security.auth.RefreshTokenRepository;
 import com.side.shop.security.jwt.JwtProperties;
 import com.side.shop.security.jwt.JwtTokenProvider;
+import io.jsonwebtoken.ExpiredJwtException;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,8 +54,7 @@ public class MemberService {
     @Transactional
     public LoginResponseDto login(LoginRequestDto request) {
         // 1. 회원 조회
-        Member member =
-                memberRepository.findByEmail(request.getEmail()).orElseThrow(() -> new InvalidCredentialsException());
+        Member member = memberRepository.findByEmail(request.getEmail()).orElseThrow(InvalidCredentialsException::new);
 
         // 2. 비밀번호 검증 (Entity의 비즈니스 로직 사용)
         if (!member.matchesPassword(request.getPassword(), passwordEncoder)) {
@@ -64,19 +64,18 @@ public class MemberService {
         // 3. JWT 토큰 생성
         String accessToken = jwtTokenProvider.generateToken(
                 member.getId(), member.getEmail(), member.getRole().name());
-                member.getEmail(), member.getRole().name());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(member.getEmail());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(member.getId());
 
         // 4. Refresh Token 저장
         Instant expiryDate = Instant.now().plusMillis(jwtProperties.getRefreshExpiration());
         RefreshToken refreshTokenEntity =
-                refreshTokenRepository.findByUserEmail(member.getEmail()).orElse(null);
+                refreshTokenRepository.findByMemberId(member.getId()).orElse(null);
 
         if (refreshTokenEntity != null) {
             refreshTokenEntity.updateToken(refreshToken, expiryDate);
         } else {
             refreshTokenEntity = RefreshToken.builder()
-                    .userEmail(member.getEmail())
+                    .memberId(member.getId())
                     .token(refreshToken)
                     .expiryDate(expiryDate)
                     .build();
@@ -94,30 +93,37 @@ public class MemberService {
     @Transactional
     public TokenResponseDto reissue(String refreshToken) {
         // 1. Refresh Token 유효성 검증
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new InvalidCredentialsException(); // 적절한 예외로 변경 필요
+        try {
+            if (!jwtTokenProvider.validateToken(refreshToken)) {
+                throw new InvalidCredentialsException();
+            }
+        } catch (ExpiredJwtException e) {
+            // 만료된 토큰인 경우 DB에서도 삭제하고 예외 발생
+            refreshTokenRepository.findByToken(refreshToken).ifPresent(refreshTokenRepository::delete);
+            throw new InvalidCredentialsException();
+        } catch (Exception e) {
+            throw new InvalidCredentialsException();
         }
 
         // 2. DB에서 토큰 조회
-        RefreshToken tokenEntity = refreshTokenRepository
-                .findByToken(refreshToken)
-                .orElseThrow(() -> new InvalidCredentialsException()); // 적절한 예외로 변경 필요
+        RefreshToken tokenEntity =
+                refreshTokenRepository.findByToken(refreshToken).orElseThrow(() -> new InvalidCredentialsException());
 
         // 3. 만료 확인 (DB에 저장된 만료 시간)
         if (tokenEntity.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(tokenEntity);
-            throw new InvalidCredentialsException(); // 적절한 예외로 변경 필요
+            throw new InvalidCredentialsException();
         }
 
         // 4. 사용자 조회
         Member member = memberRepository
-                .findByEmail(tokenEntity.getUserEmail())
-                .orElseThrow(() -> new MemberNotFoundException(tokenEntity.getUserEmail()));
+                .findById(tokenEntity.getMemberId())
+                .orElseThrow(() -> new MemberNotFoundException(String.valueOf(tokenEntity.getMemberId())));
 
         // 5. 새로운 토큰 생성
         String newAccessToken = jwtTokenProvider.generateToken(
-                member.getEmail(), member.getRole().name());
-        String newRefreshToken = jwtTokenProvider.generateRefreshToken(member.getEmail());
+                member.getId(), member.getEmail(), member.getRole().name());
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(member.getId());
 
         // 6. Refresh Token 업데이트 (Rotation)
         Instant expiryDate = Instant.now().plusMillis(jwtProperties.getRefreshExpiration());

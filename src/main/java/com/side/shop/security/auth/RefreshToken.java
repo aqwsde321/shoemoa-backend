@@ -19,8 +19,8 @@ import lombok.NoArgsConstructor;
 public class RefreshToken {
 
     @Id
-    @Column(name = "user_email", nullable = false, unique = true)
-    private String userEmail;
+    @Column(name = "member_id", nullable = false, unique = true)
+    private Long memberId;
 
     @Column(name = "token", nullable = false)
     private String token;

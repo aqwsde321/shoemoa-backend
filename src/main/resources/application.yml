@@ -51,6 +51,7 @@ springdoc:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000  # 1시간 (밀리초 단위)
+  refresh-expiration: 604800000
 
 
 app:

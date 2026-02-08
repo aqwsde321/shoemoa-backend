@@ -1,5 +1,6 @@
 package com.side.shop.member.presentation.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,5 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TokenRequestDto {
 
+    @NotBlank(message = "Refresh Token은 필수입니다.")
     private String refreshToken;
 }

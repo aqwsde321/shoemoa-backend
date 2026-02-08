@@ -2,6 +2,7 @@ package com.side.shop.security.jwt;
 
 import static org.assertj.core.api.Assertions.*;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ class JwtTokenProviderTest {
         JwtProperties jwtProperties = new JwtProperties();
         jwtProperties.setSecret("test-secret-key-for-jwt-token-generation-must-be-at-least-256-bits");
         jwtProperties.setExpiration(3600000L); // 1시간
+        jwtProperties.setRefreshExpiration(604800000L); // 7일
 
         jwtTokenProvider = new JwtTokenProvider(jwtProperties);
     }
@@ -37,6 +39,20 @@ class JwtTokenProviderTest {
     }
 
     @Test
+    @DisplayName("Refresh Token을 생성할 수 있다")
+    void generateRefreshToken() {
+        // given
+        Long memberId = 1L;
+
+        // when
+        String refreshToken = jwtTokenProvider.generateRefreshToken(memberId);
+
+        // then
+        assertThat(refreshToken).isNotNull();
+        assertThat(refreshToken).isNotEmpty();
+    }
+
+    @Test
     @DisplayName("토큰에서 사용자 ID를 추출할 수 있다")
     void getMemberIdFromToken() {
         // given
@@ -47,6 +63,20 @@ class JwtTokenProviderTest {
 
         // when
         Long extractedMemberId = jwtTokenProvider.getMemberIdFromToken(token);
+
+        // then
+        assertThat(extractedMemberId).isEqualTo(memberId);
+    }
+
+    @Test
+    @DisplayName("Refresh Token에서 사용자 ID를 추출할 수 있다")
+    void getMemberIdFromRefreshToken() {
+        // given
+        Long memberId = 1L;
+        String refreshToken = jwtTokenProvider.generateRefreshToken(memberId);
+
+        // when
+        Long extractedMemberId = jwtTokenProvider.getMemberIdFromToken(refreshToken);
 
         // then
         assertThat(extractedMemberId).isEqualTo(memberId);
@@ -114,7 +144,7 @@ class JwtTokenProviderTest {
     }
 
     @Test
-    @DisplayName("만료된 토큰은 검증을 실패한다")
+    @DisplayName("만료된 토큰은 검증 시 예외가 발생한다")
     void validateToken_Expired() {
         // given
         JwtProperties expiredProperties = new JwtProperties();
@@ -124,10 +154,7 @@ class JwtTokenProviderTest {
         JwtTokenProvider expiredProvider = new JwtTokenProvider(expiredProperties);
         String token = expiredProvider.generateToken(1L, "user@example.com", "USER");
 
-        // when
-        boolean isValid = jwtTokenProvider.validateToken(token);
-
-        // then
-        assertThat(isValid).isFalse();
+        // when & then
+        assertThatThrownBy(() -> jwtTokenProvider.validateToken(token)).isInstanceOf(ExpiredJwtException.class);
     }
 }

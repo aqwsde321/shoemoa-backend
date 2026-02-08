@@ -44,6 +44,25 @@ public class JwtTokenProvider {
     }
 
     /**
+     * JWT Refresh 토큰 생성
+     *
+     * @param memberId 사용자 ID
+     * @return JWT 토큰 문자열
+     */
+    public String generateRefreshToken(Long memberId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshExpiration());
+
+        return Jwts.builder()
+                .setSubject(String.valueOf(memberId)) // 주체 (사용자 ID)
+                .claim("type", "refresh") // 토큰 타입 명시
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /**
      * 토큰에서 사용자 ID 추출
      *
      * @param token JWT 토큰
@@ -52,24 +71,6 @@ public class JwtTokenProvider {
     public Long getMemberIdFromToken(String token) {
         Claims claims = parseClaims(token);
         return Long.parseLong(claims.getSubject());
-    }
-
-    /**
-     * JWT Refresh 토큰 생성
-     *
-     * @param email 사용자 이메일
-     * @return JWT 토큰 문자열
-     */
-    public String generateRefreshToken(String email) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshExpiration());
-
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
     }
 
     /**
@@ -105,13 +106,20 @@ public class JwtTokenProvider {
             parseClaims(token);
             return true;
         } catch (ExpiredJwtException ex) {
+            // 토큰이 만료된 경우 (유효기간 지남)
             log.warn("Expired JWT token: {}", ex.getMessage());
             throw ex;
         } catch (UnsupportedJwtException ex) {
+            // 지원되지 않는 JWT 토큰인 경우
             log.warn("Unsupported JWT token: {}", ex.getMessage());
-        } catch (io.jsonwebtoken.security.SecurityException | IllegalArgumentException ex) {
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException ex) {
+            // 잘못된 JWT 서명 (조작된 토큰) 또는 구조가 잘못된 경우
             log.warn("Invalid JWT signature/claims: {}", ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            // JWT 토큰이 비어있거나 잘못된 인자인 경우
+            log.warn("JWT token compact of handler are invalid: {}", ex.getMessage());
         } catch (JwtException ex) {
+            // 그 외 JWT 관련 일반적인 예외
             log.warn("Invalid JWT token: {}", ex.getMessage());
         }
         return false;

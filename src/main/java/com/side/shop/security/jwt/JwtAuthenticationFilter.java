@@ -2,6 +2,10 @@ package com.side.shop.security.jwt;
 
 import com.side.shop.member.domain.MemberRole;
 import com.side.shop.security.auth.CustomUserDetails;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SecurityException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,10 +52,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 6. SecurityContext에 Authentication 설정
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+        } catch (ExpiredJwtException ex) {
             request.setAttribute("exception", "EXPIRED_TOKEN");
+        } catch (UnsupportedJwtException ex) {
+            request.setAttribute("exception", "UNSUPPORTED_TOKEN");
+        } catch (SecurityException | MalformedJwtException ex) {
+            request.setAttribute("exception", "INVALID_TOKEN");
         } catch (Exception ex) {
             logger.error("Could not set user authentication in security context", ex);
+            request.setAttribute("exception", "UNKNOWN_ERROR");
         }
 
         // 다음 필터로 이동

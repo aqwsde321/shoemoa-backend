@@ -9,6 +9,10 @@ import com.side.shop.member.infrastructure.MemberRepository;
 import com.side.shop.member.presentation.dto.LoginRequestDto;
 import com.side.shop.member.presentation.dto.LoginResponseDto;
 import com.side.shop.member.presentation.dto.SignupRequestDto;
+import com.side.shop.member.presentation.dto.TokenRequestDto;
+import com.side.shop.member.presentation.dto.TokenResponseDto;
+import com.side.shop.security.jwt.JwtProperties;
+import com.side.shop.security.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(printOnlyOnFailure = false)
 @Transactional
 class SecurityIntegrationTest {
 
@@ -37,6 +41,12 @@ class SecurityIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private JwtProperties jwtProperties;
 
     @Test
     @DisplayName("일반 회원은 상품 등록이 불가능하다")
@@ -189,5 +199,80 @@ class SecurityIntegrationTest {
     void anyone_CanViewProducts() throws Exception {
         // when & then - 인증 없이 상품 조회
         mockMvc.perform(get("/api/products")).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("만료된 Access Token으로 요청 시 401 응답 후 Refresh Token으로 재발급받아 성공한다")
+    void expiredAccessToken_ReissueAndSucceed() throws Exception {
+        // given - 관리자 계정 생성 및 로그인
+        String email = "admin_expired@example.com";
+        String password = "password123";
+        Member admin = Member.createAdmin(email, password, passwordEncoder);
+        memberRepository.save(admin);
+
+        LoginRequestDto loginRequestDto = new LoginRequestDto(email, password);
+        MvcResult loginResult = mockMvc.perform(post("/api/members/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequestDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseBody = loginResult.getResponse().getContentAsString();
+        LoginResponseDto loginResponseDto = objectMapper.readValue(responseBody, LoginResponseDto.class);
+        String refreshToken = loginResponseDto.getRefreshToken();
+
+        // 만료된 Access Token 생성 (테스트를 위해 강제로 만료된 토큰 생성)
+        JwtProperties expiredProperties = new JwtProperties();
+        expiredProperties.setSecret(jwtProperties.getSecret());
+        expiredProperties.setExpiration(-1000L); // 만료 설정
+        JwtTokenProvider expiredProvider = new JwtTokenProvider(expiredProperties);
+        String expiredAccessToken = expiredProvider.generateToken(admin.getId(), email, "ADMIN");
+
+        // when - 1. 만료된 토큰으로 상품 등록 시도 -> 401 실패 예상
+        String productJson =
+                """
+                {
+                    "name": "뉴발란스 993",
+                    "brand": "New Balance",
+                    "price": 250000,
+                    "description": "편안한 착화감",
+                    "color": "Grey"
+                }
+                """;
+        MockMultipartFile data =
+                new MockMultipartFile("data", "", MediaType.APPLICATION_JSON_VALUE, productJson.getBytes());
+        MockMultipartFile image = new MockMultipartFile(
+                "images", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".getBytes());
+
+        mockMvc.perform(multipart("/api/products")
+                        .file(data)
+                        .file(image)
+                        .header("Authorization", "Bearer " + expiredAccessToken))
+                .andExpect(status().isUnauthorized()); // 401 Unauthorized
+
+        // when - 2. Refresh Token으로 Access Token 재발급
+        TokenRequestDto tokenRequestDto = new TokenRequestDto(refreshToken);
+        MvcResult reissueResult = mockMvc.perform(post("/api/members/reissue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(tokenRequestDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String reissueResponseBody = reissueResult.getResponse().getContentAsString();
+        TokenResponseDto tokenResponseDto = objectMapper.readValue(reissueResponseBody, TokenResponseDto.class);
+        String newAccessToken = tokenResponseDto.getAccessToken();
+
+        // when - 3. 재발급받은 토큰으로 다시 상품 등록 시도 -> 성공 예상
+        // MockMultipartFile은 재사용이 안될 수 있으므로 다시 생성
+        MockMultipartFile newData =
+                new MockMultipartFile("data", "", MediaType.APPLICATION_JSON_VALUE, productJson.getBytes());
+        MockMultipartFile newImage = new MockMultipartFile(
+                "images", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".getBytes());
+
+        mockMvc.perform(multipart("/api/products")
+                        .file(newData)
+                        .file(newImage)
+                        .header("Authorization", "Bearer " + newAccessToken))
+                .andExpect(status().isOk());
     }
 }
