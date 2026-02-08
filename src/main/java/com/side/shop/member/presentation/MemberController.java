@@ -4,7 +4,6 @@ import com.side.shop.member.application.MemberService;
 import com.side.shop.member.presentation.dto.LoginRequestDto;
 import com.side.shop.member.presentation.dto.LoginResponseDto;
 import com.side.shop.member.presentation.dto.SignupRequestDto;
-import com.side.shop.member.presentation.dto.TokenRequestDto;
 import com.side.shop.member.presentation.dto.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,7 +14,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,7 +44,9 @@ public class MemberController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "회원가입이 완료되었습니다."));
     }
 
-    @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하여 JWT Access Token과 Refresh Token을 발급받습니다.")
+    @Operation(
+            summary = "로그인",
+            description = "이메일과 비밀번호로 로그인하여 JWT Access Token을 발급받습니다. Refresh Token은 HttpOnly 쿠키로 설정됩니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(
@@ -56,25 +59,44 @@ public class MemberController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
         LoginResponseDto response = memberService.login(request);
-        return ResponseEntity.ok(response);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", response.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(response);
     }
 
-    @Operation(
-            summary = "토큰 재발급",
-            description =
-                    "API 요청 시 401 Unauthorized (Error Code: TOKEN_EXPIRED) 응답을 받은 경우, 이 API를 호출하여 새로운 Access Token과 Refresh Token을 발급받습니다.")
+    @Operation(summary = "토큰 재발급", description = "Cookie에 저장된 Refresh Token을 사용하여 새로운 Access Token을 발급받습니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(
                         responseCode = "200",
                         description = "토큰 재발급 성공",
                         content = @Content(schema = @Schema(implementation = TokenResponseDto.class))),
-                @ApiResponse(responseCode = "400", description = "잘못된 요청 (Refresh Token 누락 등)", content = @Content),
+                @ApiResponse(responseCode = "400", description = "잘못된 요청 (Refresh Token 쿠키 누락)", content = @Content),
                 @ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 Refresh Token", content = @Content)
             })
     @PostMapping("/reissue")
-    public ResponseEntity<TokenResponseDto> reissue(@Valid @RequestBody TokenRequestDto request) {
-        TokenResponseDto response = memberService.reissue(request.getRefreshToken());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<TokenResponseDto> reissue(@CookieValue("refreshToken") String refreshToken) {
+        TokenResponseDto response = memberService.reissue(refreshToken);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", response.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(response);
     }
 }
