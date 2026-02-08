@@ -4,6 +4,8 @@ import com.side.shop.member.application.MemberService;
 import com.side.shop.member.presentation.dto.LoginRequestDto;
 import com.side.shop.member.presentation.dto.LoginResponseDto;
 import com.side.shop.member.presentation.dto.SignupRequestDto;
+import com.side.shop.member.presentation.dto.TokenRequestDto;
+import com.side.shop.member.presentation.dto.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,6 +34,13 @@ public class MemberController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
         LoginResponseDto response = memberService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "토큰 재발급", description = "Refresh Token을 사용하여 새로운 Access Token을 발급받습니다.")
+    @PostMapping("/reissue")
+    public ResponseEntity<TokenResponseDto> reissue(@RequestBody TokenRequestDto request) {
+        TokenResponseDto response = memberService.reissue(request.getRefreshToken());
         return ResponseEntity.ok(response);
     }
 }

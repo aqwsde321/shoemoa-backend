@@ -22,7 +22,7 @@ public class JwtTokenProvider {
     }
 
     /**
-     * JWT 토큰 생성
+     * JWT Access 토큰 생성
      *
      * @param email 사용자 이메일
      * @param role  사용자 역할 (ADMIN, USER)
@@ -38,6 +38,24 @@ public class JwtTokenProvider {
                 .setIssuedAt(now) // 발급 시간
                 .setExpiration(expiryDate) // 만료 시간
                 .signWith(secretKey, SignatureAlgorithm.HS256) // 서명
+                .compact();
+    }
+
+    /**
+     * JWT Refresh 토큰 생성
+     *
+     * @param email 사용자 이메일
+     * @return JWT 토큰 문자열
+     */
+    public String generateRefreshToken(String email) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshExpiration());
+
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -75,6 +93,7 @@ public class JwtTokenProvider {
             return true;
         } catch (ExpiredJwtException ex) {
             log.warn("Expired JWT token: {}", ex.getMessage());
+            throw ex;
         } catch (UnsupportedJwtException ex) {
             log.warn("Unsupported JWT token: {}", ex.getMessage());
         } catch (io.jsonwebtoken.security.SecurityException | IllegalArgumentException ex) {
