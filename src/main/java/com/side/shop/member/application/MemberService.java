@@ -63,6 +63,7 @@ public class MemberService {
 
         // 3. JWT 토큰 생성
         String accessToken = jwtTokenProvider.generateToken(
+                member.getId(), member.getEmail(), member.getRole().name());
                 member.getEmail(), member.getRole().name());
         String refreshToken = jwtTokenProvider.generateRefreshToken(member.getEmail());
 

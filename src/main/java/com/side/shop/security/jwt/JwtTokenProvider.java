@@ -24,21 +24,34 @@ public class JwtTokenProvider {
     /**
      * JWT Access 토큰 생성
      *
-     * @param email 사용자 이메일
-     * @param role  사용자 역할 (ADMIN, USER)
+     * @param memberId 사용자 ID
+     * @param email    사용자 이메일
+     * @param role     사용자 역할 (ADMIN, USER)
      * @return JWT 토큰 문자열
      */
-    public String generateToken(String email, String role) {
+    public String generateToken(Long memberId, String email, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getExpiration());
 
         return Jwts.builder()
-                .setSubject(email) // 주체 (사용자 식별자)
+                .setSubject(String.valueOf(memberId)) // 주체 (사용자 ID)
+                .claim("email", email) // 이메일
                 .claim("role", role) // 커스텀 클레임 (역할)
                 .setIssuedAt(now) // 발급 시간
                 .setExpiration(expiryDate) // 만료 시간
                 .signWith(secretKey, SignatureAlgorithm.HS256) // 서명
                 .compact();
+    }
+
+    /**
+     * 토큰에서 사용자 ID 추출
+     *
+     * @param token JWT 토큰
+     * @return 사용자 ID
+     */
+    public Long getMemberIdFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return Long.parseLong(claims.getSubject());
     }
 
     /**
@@ -67,7 +80,7 @@ public class JwtTokenProvider {
      */
     public String getEmailFromToken(String token) {
         Claims claims = parseClaims(token);
-        return claims.getSubject();
+        return claims.get("email", String.class);
     }
 
     /**

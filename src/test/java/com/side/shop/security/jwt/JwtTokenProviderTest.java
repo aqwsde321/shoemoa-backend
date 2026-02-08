@@ -24,11 +24,12 @@ class JwtTokenProviderTest {
     @DisplayName("JWT 토큰을 생성할 수 있다")
     void generateToken() {
         // given
+        Long memberId = 1L;
         String email = "user@example.com";
         String role = "USER";
 
         // when
-        String token = jwtTokenProvider.generateToken(email, role);
+        String token = jwtTokenProvider.generateToken(memberId, email, role);
 
         // then
         assertThat(token).isNotNull();
@@ -36,12 +37,29 @@ class JwtTokenProviderTest {
     }
 
     @Test
+    @DisplayName("토큰에서 사용자 ID를 추출할 수 있다")
+    void getMemberIdFromToken() {
+        // given
+        Long memberId = 1L;
+        String email = "user@example.com";
+        String role = "USER";
+        String token = jwtTokenProvider.generateToken(memberId, email, role);
+
+        // when
+        Long extractedMemberId = jwtTokenProvider.getMemberIdFromToken(token);
+
+        // then
+        assertThat(extractedMemberId).isEqualTo(memberId);
+    }
+
+    @Test
     @DisplayName("토큰에서 이메일을 추출할 수 있다")
     void getEmailFromToken() {
         // given
+        Long memberId = 1L;
         String email = "user@example.com";
         String role = "USER";
-        String token = jwtTokenProvider.generateToken(email, role);
+        String token = jwtTokenProvider.generateToken(memberId, email, role);
 
         // when
         String extractedEmail = jwtTokenProvider.getEmailFromToken(token);
@@ -54,9 +72,10 @@ class JwtTokenProviderTest {
     @DisplayName("토큰에서 역할을 추출할 수 있다")
     void getRoleFromToken() {
         // given
+        Long memberId = 1L;
         String email = "admin@example.com";
         String role = "ADMIN";
-        String token = jwtTokenProvider.generateToken(email, role);
+        String token = jwtTokenProvider.generateToken(memberId, email, role);
 
         // when
         String extractedRole = jwtTokenProvider.getRoleFromToken(token);
@@ -69,9 +88,10 @@ class JwtTokenProviderTest {
     @DisplayName("유효한 토큰은 검증을 통과한다")
     void validateToken_Valid() {
         // given
+        Long memberId = 1L;
         String email = "user@example.com";
         String role = "USER";
-        String token = jwtTokenProvider.generateToken(email, role);
+        String token = jwtTokenProvider.generateToken(memberId, email, role);
 
         // when
         boolean isValid = jwtTokenProvider.validateToken(token);
@@ -102,7 +122,7 @@ class JwtTokenProviderTest {
         expiredProperties.setExpiration(-1000L); // 이미 만료된 시간 설정
 
         JwtTokenProvider expiredProvider = new JwtTokenProvider(expiredProperties);
-        String token = expiredProvider.generateToken("user@example.com", "USER");
+        String token = expiredProvider.generateToken(1L, "user@example.com", "USER");
 
         // when
         boolean isValid = jwtTokenProvider.validateToken(token);

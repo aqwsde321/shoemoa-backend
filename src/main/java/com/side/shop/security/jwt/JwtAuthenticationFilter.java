@@ -1,6 +1,7 @@
 package com.side.shop.security.jwt;
 
-import com.side.shop.security.auth.CustomUserDetailsService;
+import com.side.shop.member.domain.MemberRole;
+import com.side.shop.security.auth.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +21,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -32,11 +32,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 2. 토큰 유효성 검증
             if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-                // 3. 토큰에서 이메일 추출
+                // 3. 토큰에서 정보 추출
+                Long memberId = jwtTokenProvider.getMemberIdFromToken(token);
                 String email = jwtTokenProvider.getEmailFromToken(token);
+                String role = jwtTokenProvider.getRoleFromToken(token);
 
-                // 4. UserDetails 조회
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                // 4. UserDetails 생성 (DB 조회 없이 토큰 정보로만 생성)
+                UserDetails userDetails = new CustomUserDetails(memberId, email, MemberRole.valueOf(role));
 
                 // 5. Authentication 객체 생성
                 UsernamePasswordAuthenticationToken authentication =

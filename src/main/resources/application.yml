@@ -39,8 +39,14 @@ logging:
     org.hibernate.orm.jdbc.bind: trace
 
 springdoc:
-  swagger-ui:
+  api-docs:
+    path: /v3/api-docs
     enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  override-with-generic-response: false
+  show-actuator: false
 
 jwt:
   secret: ${JWT_SECRET}
