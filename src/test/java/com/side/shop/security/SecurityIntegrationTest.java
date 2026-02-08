@@ -9,10 +9,10 @@ import com.side.shop.member.infrastructure.MemberRepository;
 import com.side.shop.member.presentation.dto.LoginRequestDto;
 import com.side.shop.member.presentation.dto.LoginResponseDto;
 import com.side.shop.member.presentation.dto.SignupRequestDto;
-import com.side.shop.member.presentation.dto.TokenRequestDto;
 import com.side.shop.member.presentation.dto.TokenResponseDto;
 import com.side.shop.security.jwt.JwtProperties;
 import com.side.shop.security.jwt.JwtTokenProvider;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,9 +217,7 @@ class SecurityIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String responseBody = loginResult.getResponse().getContentAsString();
-        LoginResponseDto loginResponseDto = objectMapper.readValue(responseBody, LoginResponseDto.class);
-        String refreshToken = loginResponseDto.getRefreshToken();
+        Cookie refreshTokenCookie = loginResult.getResponse().getCookie("refreshToken");
 
         // 만료된 Access Token 생성 (테스트를 위해 강제로 만료된 토큰 생성)
         JwtProperties expiredProperties = new JwtProperties();
@@ -252,10 +250,7 @@ class SecurityIntegrationTest {
                 .andExpect(jsonPath("$.code").value("TOKEN_EXPIRED")); // ⭐️ 에러 코드가 TOKEN_EXPIRED 인지 검증
 
         // when - 2. Refresh Token으로 Access Token 재발급
-        TokenRequestDto tokenRequestDto = new TokenRequestDto(refreshToken);
-        MvcResult reissueResult = mockMvc.perform(post("/api/members/reissue")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(tokenRequestDto)))
+        MvcResult reissueResult = mockMvc.perform(post("/api/members/reissue").cookie(refreshTokenCookie)) // 쿠키 전송
                 .andExpect(status().isOk())
                 .andReturn();
 
