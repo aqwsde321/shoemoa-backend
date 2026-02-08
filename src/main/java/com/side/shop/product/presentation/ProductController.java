@@ -3,12 +3,15 @@ package com.side.shop.product.presentation;
 import com.side.shop.product.application.ProductService;
 import com.side.shop.product.presentation.dto.*;
 import java.util.List;
+
+import com.side.shop.security.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,7 +31,9 @@ public class ProductController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateProductResponseDto> createProduct(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestPart("data") CreateProductDto dto, @RequestPart("images") List<MultipartFile> images) {
+        System.out.println("userDetails: " + userDetails);
         Long productId = productService.createProduct(dto, images);
         return ResponseEntity.ok(new CreateProductResponseDto(productId));
     }
