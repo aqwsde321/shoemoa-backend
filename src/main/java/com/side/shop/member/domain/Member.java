@@ -2,7 +2,6 @@ package com.side.shop.member.domain;
 
 import com.side.shop.common.domain.BaseEntity;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import lombok.Getter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -26,13 +25,10 @@ public class Member extends BaseEntity {
     private MemberRole role;
 
     @Column(nullable = false)
-    private Boolean emailVerified = false;
+    private boolean emailVerified = false;
 
     @Column
     private String verificationToken;
-
-    @Column
-    private LocalDateTime tokenExpiresAt;
 
     protected Member() {
         // JPA를 위한 기본 생성자
@@ -67,19 +63,17 @@ public class Member extends BaseEntity {
         this.password = passwordEncoder.encode(newRawPassword);
     }
 
-    // 비즈니스 로직: 이메일 인증 (추후 사용)
+    // 비즈니스 로직: 이메일 인증
     public void verify() {
         if (this.emailVerified) {
             throw new IllegalStateException("이미 인증된 회원입니다.");
         }
         this.emailVerified = true;
         this.verificationToken = null;
-        this.tokenExpiresAt = null;
     }
 
-    // 비즈니스 로직: 인증 토큰 생성 (추후 사용)
-    public void generateVerificationToken(String token, int expirationHours) {
+    // 비즈니스 로직: 인증 토큰 생성
+    public void generateVerificationToken(String token) {
         this.verificationToken = token;
-        this.tokenExpiresAt = LocalDateTime.now().plusHours(expirationHours);
     }
 }

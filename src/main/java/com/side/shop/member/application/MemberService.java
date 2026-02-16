@@ -1,8 +1,10 @@
 package com.side.shop.member.application;
 
+import com.side.shop.common.application.MailService;
 import com.side.shop.member.domain.Member;
 import com.side.shop.member.exception.DuplicateEmailException;
 import com.side.shop.member.exception.InvalidCredentialsException;
+import com.side.shop.member.exception.InvalidVerificationTokenException;
 import com.side.shop.member.exception.MemberNotFoundException;
 import com.side.shop.member.infrastructure.MemberRepository;
 import com.side.shop.member.presentation.dto.LoginRequestDto;
@@ -15,10 +17,12 @@ import com.side.shop.security.jwt.JwtProperties;
 import com.side.shop.security.jwt.JwtTokenProvider;
 import io.jsonwebtoken.ExpiredJwtException;
 import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Transactional(readOnly = true)
@@ -30,6 +34,7 @@ public class MemberService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProperties jwtProperties;
+    private final MailService mailService;
 
     /**
      * 회원가입
@@ -41,11 +46,46 @@ public class MemberService {
             throw new DuplicateEmailException(request.getEmail());
         }
 
-        // 2. Member 엔티티 생성 (비즈니스 로직은 Entity에)
+        // 2. Member 엔티티 생성
         Member member = Member.createUser(request.getEmail(), request.getPassword(), passwordEncoder);
 
-        // 3. 저장
+        // 3. 인증 토큰 생성 및 저장
+        String token = UUID.randomUUID().toString();
+        member.generateVerificationToken(token);
         memberRepository.save(member);
+
+        // 4. 인증 메일 발송
+        sendVerificationEmail(member.getEmail(), token);
+    }
+
+    private void sendVerificationEmail(String email, String token) {
+        String verificationUrl = UriComponentsBuilder.fromHttpUrl("http://localhost:8080")
+                .path("/api/members/verify-email")
+                .queryParam("token", token)
+                .queryParam("email", email)
+                .build()
+                .toUriString();
+
+        String subject = "Shoemoa 회원가입 이메일 인증";
+        String text = "아래 링크를 클릭하여 이메일 인증을 완료해주세요.\n" + verificationUrl;
+
+        mailService.sendEmail(email, subject, text);
+    }
+
+    @Transactional
+    public void verifyEmail(String email, String token) {
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new MemberNotFoundException(email));
+
+        if (member.isEmailVerified()) {
+            throw new IllegalStateException("이미 인증된 회원입니다.");
+        }
+
+        if (member.getVerificationToken() == null
+                || !member.getVerificationToken().equals(token)) {
+            throw new InvalidVerificationTokenException();
+        }
+
+        member.verify();
     }
 
     /**
@@ -56,17 +96,22 @@ public class MemberService {
         // 1. 회원 조회
         Member member = memberRepository.findByEmail(request.getEmail()).orElseThrow(InvalidCredentialsException::new);
 
-        // 2. 비밀번호 검증 (Entity의 비즈니스 로직 사용)
+        // 2. 이메일 인증 여부 확인
+        if (!member.isEmailVerified()) {
+            throw new InvalidCredentialsException("이메일 인증이 필요합니다.");
+        }
+
+        // 3. 비밀번호 검증
         if (!member.matchesPassword(request.getPassword(), passwordEncoder)) {
             throw new InvalidCredentialsException();
         }
 
-        // 3. JWT 토큰 생성
+        // 4. JWT 토큰 생성
         String accessToken = jwtTokenProvider.generateToken(
                 member.getId(), member.getEmail(), member.getRole().name());
         String refreshToken = jwtTokenProvider.generateRefreshToken(member.getId());
 
-        // 4. Refresh Token 저장
+        // 5. Refresh Token 저장
         Instant expiryDate = Instant.now().plusMillis(jwtProperties.getRefreshExpiration());
         RefreshToken refreshTokenEntity =
                 refreshTokenRepository.findByMemberId(member.getId()).orElse(null);
@@ -82,7 +127,7 @@ public class MemberService {
             refreshTokenRepository.save(refreshTokenEntity);
         }
 
-        // 5. 응답 DTO 생성
+        // 6. 응답 DTO 생성
         return new LoginResponseDto(
                 accessToken, refreshToken, member.getEmail(), member.getRole().name());
     }

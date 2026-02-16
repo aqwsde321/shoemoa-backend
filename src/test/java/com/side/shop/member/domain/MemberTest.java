@@ -30,7 +30,7 @@ class MemberTest {
         // then
         assertThat(member.getEmail()).isEqualTo(email);
         assertThat(member.getRole()).isEqualTo(MemberRole.USER);
-        assertThat(member.getEmailVerified()).isFalse();
+        assertThat(member.isEmailVerified()).isFalse();
         assertThat(member.getPassword()).isNotEqualTo(password); // 암호화되어야 함
     }
 
@@ -47,7 +47,7 @@ class MemberTest {
         // then
         assertThat(member.getEmail()).isEqualTo(email);
         assertThat(member.getRole()).isEqualTo(MemberRole.ADMIN);
-        assertThat(member.getEmailVerified()).isTrue();
+        assertThat(member.isEmailVerified()).isTrue();
     }
 
     @Test
@@ -98,15 +98,14 @@ class MemberTest {
     void verify() {
         // given
         Member member = Member.createUser("user@example.com", "password123", passwordEncoder);
-        member.generateVerificationToken("token123", 24);
+        member.generateVerificationToken("token123");
 
         // when
         member.verify();
 
         // then
-        assertThat(member.getEmailVerified()).isTrue();
+        assertThat(member.isEmailVerified()).isTrue();
         assertThat(member.getVerificationToken()).isNull();
-        assertThat(member.getTokenExpiresAt()).isNull();
     }
 
     @Test
@@ -129,10 +128,9 @@ class MemberTest {
         String token = "token123";
 
         // when
-        member.generateVerificationToken(token, 24);
+        member.generateVerificationToken(token);
 
         // then
         assertThat(member.getVerificationToken()).isEqualTo(token);
-        assertThat(member.getTokenExpiresAt()).isNotNull();
     }
 }

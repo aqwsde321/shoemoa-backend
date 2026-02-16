@@ -54,7 +54,7 @@ class MemberServiceTest {
         Member savedMember = memberRepository.findByEmail("newuser@example.com").orElseThrow();
         assertThat(savedMember.getEmail()).isEqualTo("newuser@example.com");
         assertThat(savedMember.getRole()).isEqualTo(MemberRole.USER);
-        assertThat(savedMember.getEmailVerified()).isFalse();
+        assertThat(savedMember.isEmailVerified()).isFalse();
     }
 
     @Test
@@ -76,10 +76,16 @@ class MemberServiceTest {
     @DisplayName("올바른 이메일과 비밀번호로 로그인하면 JWT를 받는다")
     void login_Success() {
         // given
-        SignupRequestDto signupRequestDto = new SignupRequestDto("loginuser@example.com", "password123");
+        String email = "loginuser@example.com";
+        SignupRequestDto signupRequestDto = new SignupRequestDto(email, "password123");
         memberService.signup(signupRequestDto);
 
-        LoginRequestDto loginRequestDto = new LoginRequestDto("loginuser@example.com", "password123");
+        // 이메일 인증 처리
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.verify();
+        memberRepository.saveAndFlush(member);
+
+        LoginRequestDto loginRequestDto = new LoginRequestDto(email, "password123");
 
         // when
         LoginResponseDto response = memberService.login(loginRequestDto);
@@ -87,11 +93,10 @@ class MemberServiceTest {
         // then
         assertThat(response.getAccessToken()).isNotNull();
         assertThat(response.getRefreshToken()).isNotNull();
-        assertThat(response.getEmail()).isEqualTo("loginuser@example.com");
+        assertThat(response.getEmail()).isEqualTo(email);
         assertThat(response.getRole()).isEqualTo("USER");
 
         // Refresh Token이 DB에 저장되었는지 확인
-        Member member = memberRepository.findByEmail("loginuser@example.com").orElseThrow();
         RefreshToken savedRefreshToken =
                 refreshTokenRepository.findByMemberId(member.getId()).orElseThrow();
         assertThat(savedRefreshToken.getToken()).isEqualTo(response.getRefreshToken());
@@ -111,10 +116,16 @@ class MemberServiceTest {
     @DisplayName("잘못된 비밀번호로 로그인 시 예외가 발생한다")
     void login_WrongPassword() {
         // given
-        SignupRequestDto signupRequestDto = new SignupRequestDto("user@example.com", "password123");
+        String email = "user@example.com";
+        SignupRequestDto signupRequestDto = new SignupRequestDto(email, "password123");
         memberService.signup(signupRequestDto);
 
-        LoginRequestDto loginRequestDto = new LoginRequestDto("user@example.com", "wrongpassword");
+        // 이메일 인증 처리
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.verify();
+        memberRepository.saveAndFlush(member);
+
+        LoginRequestDto loginRequestDto = new LoginRequestDto(email, "wrongpassword");
 
         // when & then
         assertThatThrownBy(() -> memberService.login(loginRequestDto)).isInstanceOf(InvalidCredentialsException.class);
@@ -124,12 +135,19 @@ class MemberServiceTest {
     @DisplayName("유효한 Refresh Token으로 Access Token을 재발급받을 수 있다")
     void reissue_Success() throws InterruptedException {
         // given
-        SignupRequestDto signupRequestDto = new SignupRequestDto("reissue@example.com", "password123");
+        String email = "reissue@example.com";
+        SignupRequestDto signupRequestDto = new SignupRequestDto(email, "password123");
         memberService.signup(signupRequestDto);
-        LoginResponseDto loginResponse = memberService.login(new LoginRequestDto("reissue@example.com", "password123"));
+
+        // 이메일 인증 처리
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.verify();
+        memberRepository.saveAndFlush(member);
+
+        LoginResponseDto loginResponse = memberService.login(new LoginRequestDto(email, "password123"));
         String refreshToken = loginResponse.getRefreshToken();
 
-        // 토큰 발급 시간 차이를 두기 위해 잠시 대기 (JWT의 iat가 초 단위일 경우 동일한 토큰이 생성될 수 있음)
+        // 토큰 발급 시간 차이를 두기 위해 잠시 대기
         Thread.sleep(1000);
 
         // when
@@ -141,7 +159,6 @@ class MemberServiceTest {
         assertThat(tokenResponse.getRefreshToken()).isNotEqualTo(refreshToken); // Rotation 확인
 
         // DB에 새로운 Refresh Token이 저장되었는지 확인
-        Member member = memberRepository.findByEmail("reissue@example.com").orElseThrow();
         RefreshToken savedRefreshToken =
                 refreshTokenRepository.findByMemberId(member.getId()).orElseThrow();
         assertThat(savedRefreshToken.getToken()).isEqualTo(tokenResponse.getRefreshToken());

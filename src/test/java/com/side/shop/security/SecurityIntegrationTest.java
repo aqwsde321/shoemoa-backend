@@ -52,12 +52,18 @@ class SecurityIntegrationTest {
     @DisplayName("일반 회원은 상품 등록이 불가능하다")
     void user_CannotCreateProduct() throws Exception {
         // given - 일반 회원 가입 및 로그인
-        SignupRequestDto signupRequestDto = new SignupRequestDto("user@example.com", "password123");
+        String email = "user@example.com";
+        SignupRequestDto signupRequestDto = new SignupRequestDto(email, "password123");
         mockMvc.perform(post("/api/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(signupRequestDto)));
 
-        LoginRequestDto loginRequestDto = new LoginRequestDto("user@example.com", "password123");
+        // 이메일 인증 처리
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.verify();
+        memberRepository.saveAndFlush(member);
+
+        LoginRequestDto loginRequestDto = new LoginRequestDto(email, "password123");
         MvcResult loginResult = mockMvc.perform(post("/api/members/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequestDto)))

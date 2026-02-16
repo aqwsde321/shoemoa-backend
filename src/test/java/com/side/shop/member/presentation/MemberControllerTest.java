@@ -1,9 +1,11 @@
 package com.side.shop.member.presentation;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.side.shop.member.domain.Member;
 import com.side.shop.member.infrastructure.MemberRepository;
 import com.side.shop.member.presentation.dto.LoginRequestDto;
 import com.side.shop.member.presentation.dto.SignupRequestDto;
@@ -49,7 +51,26 @@ class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("회원가입이 완료되었습니다."));
+                .andExpect(jsonPath("$.message").value("회원가입 요청이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요."));
+    }
+
+    @Test
+    @DisplayName("이메일 인증 API 성공")
+    void verifyEmail_Success() throws Exception {
+        // given
+        String email = "verify@example.com";
+        SignupRequestDto request = new SignupRequestDto(email, "password123");
+        mockMvc.perform(post("/api/members/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        String token = member.getVerificationToken();
+
+        // when & then
+        mockMvc.perform(get("/api/members/verify-email").param("email", email).param("token", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("이메일 인증이 완료되었습니다."));
     }
 
     @Test
@@ -104,12 +125,18 @@ class MemberControllerTest {
     @DisplayName("로그인 API 성공")
     void login_Success() throws Exception {
         // given
-        SignupRequestDto signupRequestDto = new SignupRequestDto("loginuser@example.com", "password123");
+        String email = "loginuser@example.com";
+        SignupRequestDto signupRequestDto = new SignupRequestDto(email, "password123");
         mockMvc.perform(post("/api/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(signupRequestDto)));
 
-        LoginRequestDto loginRequestDto = new LoginRequestDto("loginuser@example.com", "password123");
+        // 이메일 인증 처리
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.verify();
+        memberRepository.saveAndFlush(member);
+
+        LoginRequestDto loginRequestDto = new LoginRequestDto(email, "password123");
 
         // when & then
         mockMvc.perform(post("/api/members/login")
@@ -118,7 +145,7 @@ class MemberControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andExpect(jsonPath("$.refreshToken").doesNotExist()) // Body에 없어야 함
-                .andExpect(jsonPath("$.email").value("loginuser@example.com"))
+                .andExpect(jsonPath("$.email").value(email))
                 .andExpect(jsonPath("$.role").value("USER"))
                 .andExpect(cookie().exists("refreshToken")) // Cookie에 있어야 함
                 .andExpect(cookie().httpOnly("refreshToken", true))
@@ -129,12 +156,18 @@ class MemberControllerTest {
     @DisplayName("로그인 API - 잘못된 비밀번호")
     void login_WrongPassword() throws Exception {
         // given
-        SignupRequestDto signupRequestDto = new SignupRequestDto("user@example.com", "password123");
+        String email = "user@example.com";
+        SignupRequestDto signupRequestDto = new SignupRequestDto(email, "password123");
         mockMvc.perform(post("/api/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(signupRequestDto)));
 
-        LoginRequestDto loginRequestDto = new LoginRequestDto("user@example.com", "wrongpassword");
+        // 이메일 인증 처리
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.verify();
+        memberRepository.saveAndFlush(member);
+
+        LoginRequestDto loginRequestDto = new LoginRequestDto(email, "wrongpassword");
 
         // when & then
         mockMvc.perform(post("/api/members/login")
@@ -149,13 +182,19 @@ class MemberControllerTest {
     void reissue_Success() throws Exception {
         // given
         // 1. 회원가입
-        SignupRequestDto signupRequestDto = new SignupRequestDto("reissue@example.com", "password123");
+        String email = "reissue@example.com";
+        SignupRequestDto signupRequestDto = new SignupRequestDto(email, "password123");
         mockMvc.perform(post("/api/members/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(signupRequestDto)));
 
-        // 2. 로그인하여 Refresh Token 획득
-        LoginRequestDto loginRequestDto = new LoginRequestDto("reissue@example.com", "password123");
+        // 2. 이메일 인증 처리
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        member.verify();
+        memberRepository.saveAndFlush(member);
+
+        // 3. 로그인하여 Refresh Token 획득
+        LoginRequestDto loginRequestDto = new LoginRequestDto(email, "password123");
         MvcResult loginResult = mockMvc.perform(post("/api/members/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequestDto)))
@@ -169,7 +208,7 @@ class MemberControllerTest {
         Thread.sleep(1000);
 
         // when & then
-        // 3. 재발급 요청
+        // 4. 재발급 요청
         mockMvc.perform(post("/api/members/reissue").cookie(new Cookie("refreshToken", refreshToken))) // 쿠키 전송
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
