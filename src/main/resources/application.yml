@@ -74,9 +74,8 @@ jwt:
 
 
 app:
+  base-url: http://localhost:8080
   admin:
     initial-password: ${ADMIN_PW}
   cors:
     allowed-origins: http://localhost:3000
-
-

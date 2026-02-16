@@ -1,6 +1,6 @@
 package com.side.shop.member.application;
 
-import com.side.shop.common.application.MailService;
+import com.side.shop.member.application.event.MemberSignedUpEvent;
 import com.side.shop.member.domain.Member;
 import com.side.shop.member.exception.DuplicateEmailException;
 import com.side.shop.member.exception.InvalidCredentialsException;
@@ -19,10 +19,10 @@ import io.jsonwebtoken.ExpiredJwtException;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Transactional(readOnly = true)
@@ -34,7 +34,7 @@ public class MemberService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProperties jwtProperties;
-    private final MailService mailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 회원가입
@@ -54,22 +54,8 @@ public class MemberService {
         member.generateVerificationToken(token);
         memberRepository.save(member);
 
-        // 4. 인증 메일 발송
-        sendVerificationEmail(member.getEmail(), token);
-    }
-
-    private void sendVerificationEmail(String email, String token) {
-        String verificationUrl = UriComponentsBuilder.fromHttpUrl("http://localhost:8080")
-                .path("/api/members/verify-email")
-                .queryParam("token", token)
-                .queryParam("email", email)
-                .build()
-                .toUriString();
-
-        String subject = "Shoemoa 회원가입 이메일 인증";
-        String text = "아래 링크를 클릭하여 이메일 인증을 완료해주세요.\n" + verificationUrl;
-
-        mailService.sendEmail(email, subject, text);
+        // 4. 회원가입 이벤트 발행
+        eventPublisher.publishEvent(new MemberSignedUpEvent(member.getEmail(), token));
     }
 
     @Transactional
