@@ -22,6 +22,7 @@ Spring Boot를 기반으로 RESTful API를 제공하며, 프론트엔드와 연�
 - **Query**: QueryDSL
 - **Storage**: AWS S3 (for Images)
 - **CDN**: AWS CloudFront
+- **Email**: JavaMailSender (Google SMTP)
 - **Build**: Gradle
 - **Code Style**: Spotless (Palantir Java Format)
 - **API Docs**: SpringDoc (Swagger)
@@ -42,7 +43,7 @@ Shoemoa 백엔드 시스템은 도메인 주도 설계(DDD) 원칙에 따라 개
 - **`product`**: 상품, 이미지, 옵션 등 상품 관련 도메인
 - **`order`**: 주문, 주문 상품 등 주문 관련 도메인
 - **`member`**: 회원 관련 도메인
-- **`common`**: 공통 모듈 (이미지 업로더 등)
+- **`common`**: 공통 모듈 (이미지 업로더, 메일 발송 등)
 
 ---
 
@@ -53,8 +54,9 @@ Shoemoa 백엔드 시스템은 도메인 주도 설계(DDD) 원칙에 따라 개
 ### Phase 1: 핵심 도메인 구현 (Product & Member)
 - **[v] 상품(Product) 도메인**: 상품 등록, 조회, 수정, 삭제 API 구현
 - **[v] 회원(Member) 도메인**:
-    -   `[v]` 회원가입, 로그인 API 구현
+    -   `[v]` 회원가입(이메일 인증 포함), 로그인 API 구현
     -   `[v]` Spring Security와 JWT를 활용한 인증/인가 구현
+    -   `[v]` 비동기 이메일 발송 처리 (Event Driven)
 
 ### Phase 2: 주문 및 결제 기능 (Order & Payment)
 - **[ ] 장바구니(Cart) 기능**:
@@ -80,6 +82,7 @@ Shoemoa 백엔드 시스템은 도메인 주도 설계(DDD) 원칙에 따라 개
 ### 사용자 기능
 - 상품 목록 조회 (검색, 필터링, 페이징)
 - 상품 상세 정보 조회
+- 회원가입 (이메일 인증) 및 로그인
 
 ### 관리자 기능
 - 상품 등록 (이미지 포함)
@@ -103,6 +106,8 @@ Shoemoa 백엔드 시스템은 도메인 주도 설계(DDD) 원칙에 따라 개
 ```
 
 ### Run Application
+실행 전, 프로젝트 루트에 `.env` 파일을 생성하여 필요한 환경 변수(DB, AWS, Email 등)를 설정해야 합니다.
+
 **1. Using Gradle (local profile)**  
 H2 인메모리 DB를 사용하여 로컬에서 빠르게 실행합니다.
 ```bash
@@ -152,24 +157,3 @@ API에서 오류 발생 시, 다음과 같은 일관된 형식의 JSON 응답을
 ```
 - **`code`**: 에러 유형을 식별하기 위한 고유 코드 (예: `BAD_REQUEST`, `ENTITY_NOT_FOUND`)
 - **`message`**: 개발자 또는 사용자가 문제를 파악하는 데 도움이 되는 설명 메시지
-
----
-
-## 🔧 Environment Variables
-
-`application.yml` 또는 `.env` 파일을 통해 환경변수를 관리합니다. API 실행을 위해 다음 변수들이 필요할 수 있습니다.
-
-```yaml
-# application-local.yml 예시
-
-# -- DB (PostgreSQL) --
-# spring.datasource.url=jdbc:postgresql://localhost:5432/shoemoa
-# spring.datasource.username=user
-# spring.datasource.password=password
-
-# -- AWS S3 & CloudFront --
-# spring.cloud.aws.credentials.access-key=...
-# spring.cloud.aws.credentials.secret-key=...
-# spring.cloud.aws.s3.bucket=your-s3-bucket-name
-# cloudfront.domain=your-cloudfront-domain.com
-```
