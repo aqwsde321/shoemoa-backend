@@ -61,11 +61,19 @@ springdoc:
   api-docs:
     path: /v3/api-docs
     enabled: true
+
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true   # 요청 시간 표시
+    doc-expansion: none              # 기본 접힘 상태 (none, list, full)
+    default-models-expand-depth: -1  # 하단 schema 숨김 (깔끔해짐)
+
   override-with-generic-response: false
   show-actuator: false
+
 
 jwt:
   secret: ${JWT_SECRET}
