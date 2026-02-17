@@ -2,6 +2,7 @@ package com.side.shop.common.exception;
 
 import com.side.shop.member.exception.DuplicateEmailException;
 import com.side.shop.member.exception.InvalidCredentialsException;
+import com.side.shop.member.exception.InvalidVerificationTokenException;
 import com.side.shop.member.exception.MemberNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,6 +69,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMemberNotFoundException(MemberNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse("MEMBER_NOT_FOUND", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * 유효하지 않은 인증 토큰 예외 처리
+     */
+    @ExceptionHandler(InvalidVerificationTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidVerificationTokenException(InvalidVerificationTokenException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("INVALID_TOKEN", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * 잘못된 상태 예외 처리 (예: 이미 인증된 회원)
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("ILLEGAL_STATE", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
     /**

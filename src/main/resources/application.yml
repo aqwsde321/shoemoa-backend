@@ -74,7 +74,7 @@ jwt:
 
 
 app:
-  base-url: http://localhost:8080
+  base-url: http://localhost:3000
   admin:
     initial-password: ${ADMIN_PW}
   cors:

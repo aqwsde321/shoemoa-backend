@@ -26,7 +26,7 @@ public class MemberEventListener {
 
     private void sendVerificationEmail(String email, String token) {
         String verificationUrl = UriComponentsBuilder.fromHttpUrl(baseUrl)
-                .path("/api/members/verify-email")
+                .path("/verify-email")
                 .queryParam("token", token)
                 .queryParam("email", email)
                 .build()
