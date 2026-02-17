@@ -1,10 +1,13 @@
 # GEMINI.md - Shoemoa Backend
 
+## Agent Instructions
+
+- 에이전트는 항상 한국어로 응답해야 합니다.
+- 모든 아티팩트 문서(`implementation_plan.md`, `walkthrough.md`, `task.md` 등)는 항상 한국어로 작성해야 합니다.
+- Git 커밋 메시지는 **Angular Commit Convention**을 따르며, 설명은 항상 한국어로 작성해야 합니다. (예: `feat(auth): 로그인 기능 구현`)
 ## Project Overview
 
 This project is the back-end for Shoemoa, a shoe e-commerce platform. It is a Spring Boot application written in Java 17. The project follows a layered architecture, separating concerns into presentation (REST API), application (business logic), domain (entities), and infrastructure (database, S3).
-
-**참고: 이 에이전트의 모든 답변은 한국어로 제공됩니다.**
 
 **Key Technologies:**
 
@@ -77,3 +80,13 @@ To run the tests, use the following command:
 *   **Branching Strategy:** (Not specified in the provided files, but a common practice would be to use a feature-branching workflow).
 *   **Testing:** The project includes unit and integration tests. New features should be accompanied by corresponding tests.
 *   **Commits:** (Not specified, but it's good practice to write clear and concise commit messages).
+
+## Documentation Structure
+
+The project documentation is organized in the `docs/` directory:
+
+*   `docs/architecture/`: Core principles, structure, and conventions.
+*   `docs/testing/`: Testing strategies and guides.
+*   `docs/implementation/`: Implementation details (Security, Infrastructure).
+*   `docs/troubleshooting/`: Records of issues and solutions.
+*   `docs/architecture/old/`: Archived documentation for previous versions (v0-v2).

@@ -64,21 +64,24 @@ Shoemoa는 Stateless한 인증 방식을 위해 JWT를 사용합니다. Access T
 
 ## 4. 에러 코드 (Error Codes)
 
-인증 실패 시 `401 Unauthorized` 상태 코드와 함께 아래의 에러 코드가 반환됩니다.
+인증/인가 실패 시 아래의 에러 코드가 반환됩니다.
 
-| Error Code | Description | Action |
-| :--- | :--- | :--- |
-| `TOKEN_EXPIRED` | Access Token이 만료됨 | Refresh Token으로 재발급 요청 (`/api/members/reissue`) |
-| `INVALID_TOKEN` | 유효하지 않은 토큰 (서명 불일치, 구조 오류 등) | 재로그인 필요 |
-| `UNSUPPORTED_TOKEN` | 지원되지 않는 토큰 형식 | 재로그인 필요 |
-| `UNAUTHORIZED` | 토큰이 없거나 인증 실패 | 로그인 필요 |
-| `MISSING_COOKIE` | 필수 쿠키(Refresh Token) 누락 | 재로그인 필요 |
+| Status | Error Code | Description | Action |
+| :--- | :--- | :--- | :--- |
+| 401 | `TOKEN_EXPIRED` | Access Token이 만료됨 | Refresh Token으로 재발급 요청 (`/api/members/reissue`) |
+| 401 | `INVALID_TOKEN` | 유효하지 않은 토큰 (서명 불일치, 구조 오류 등) | 재로그인 필요 |
+| 401 | `UNSUPPORTED_TOKEN` | 지원되지 않는 토큰 형식 | 재로그인 필요 |
+| 401 | `UNAUTHORIZED` | 토큰이 없거나, 그 외 인증 관련 예외 발생 | 로그인 필요 |
+| 401 | `MISSING_COOKIE` | 필수 쿠키(Refresh Token) 누락 | 재로그인 필요 |
+| 403 | `FORBIDDEN` | 해당 리소스에 접근할 권한이 없음 | 권한 확인 또는 관리자에게 문의 |
 
 ## 5. 주요 클래스
 
 *   **`JwtTokenProvider`**: 토큰 생성, 파싱, 유효성 검증 담당
 *   **`JwtAuthenticationFilter`**: 요청마다 헤더의 토큰을 검사하여 인증 처리
 *   **`SecurityConfig`**: Spring Security 설정, 필터 등록, 예외 처리 핸들러 등록
+*   **`AuthenticationEntryPoint`**: 인증 실패(`401 Unauthorized`) 시 공통 에러 응답 처리
+*   **`AccessDeniedHandler`**: 인가 실패(`403 Forbidden`) 시 공통 에러 응답 처리
 *   **`MemberController`**: 로그인, 회원가입, 토큰 재발급 API 및 쿠키 처리
 *   **`MemberService`**: 로그인, 회원가입, 토큰 재발급 비즈니스 로직 처리
 *   **`RefreshTokenRepository`**: Refresh Token DB 접근

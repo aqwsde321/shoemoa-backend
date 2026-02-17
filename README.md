@@ -14,6 +14,17 @@ Spring Boot를 기반으로 RESTful API를 제공하며, 프론트엔드와 연�
 
 ---
 
+## 📚 Documentation
+
+프로젝트의 상세 문서(아키텍처, 구현 상세, 테스트 전략 등)는 [`docs/`](./docs/README.md) 디렉토리에서 확인할 수 있습니다.
+
+- **`architecture/`**: 핵심 설계 원칙, 코드 구조, 컨벤션
+- **`testing/`**: 테스트 전략 및 작성 가이드
+- **`implementation/`**: 특정 기능/인프라 구현 상세 (보안, AWS 등)
+- **`troubleshooting/`**: 개발 중 발생한 문제 및 해결 기록
+
+---
+
 ## 🛠 Tech Stack
 
 - **Framework**: Spring Boot 3.5.9, Spring Data JPA
@@ -49,7 +60,7 @@ Shoemoa 백엔드 시스템은 도메인 주도 설계(DDD) 원칙에 따라 개
 
 ## 🗺️ Development Roadmap
 
-이 프로젝트는 v3 아키텍처를 기반으로 다음 단계에 따라 기능을 확장해 나가는 것을 목표로 합니다.
+이 프로젝트는 `docs/architecture/` 문서를 기반으로 다음 단계에 따라 기능을 확장해 나가는 것을 목표로 합니다.
 
 ### Phase 1: 핵심 도메인 구현 (Product & Member)
 - **[v] 상품(Product) 도메인**: 상품 등록, 조회, 수정, 삭제 API 구현
