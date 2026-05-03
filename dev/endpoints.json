@@ -428,6 +428,42 @@
       }
     },
     {
+      "id": "get-api-openapi-slack-test-v2",
+      "method": "get",
+      "path": "/api/openapi-slack-test-v2",
+      "summary": "",
+      "description": "",
+      "operationId": "openApiSlackTestV2",
+      "tags": [
+        "open-api-slack-test-controller"
+      ],
+      "rawFingerprint": "e588565fbb6f2f8e9ed9584aa2138610165bf74ecea1cfbd68095117d9fea28d",
+      "contractFingerprint": "fdd25e1e452b52dd95c20e98717d5ff78492f23c712987c64fcb368ab2fd6e68",
+      "contractSnapshot": {
+        "method": "get",
+        "path": "/api/openapi-slack-test-v2",
+        "operation": {
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "parameters": [],
+          "requestBody": null
+        },
+        "referencedSchemas": {}
+      }
+    },
+    {
       "id": "get-api-products",
       "method": "get",
       "path": "/api/products",
@@ -509,6 +545,9 @@
                   "$ref": "#/components/schemas/SortObject"
                 }
               },
+              "unpaged": {
+                "type": "boolean"
+              },
               "paged": {
                 "type": "boolean"
               },
@@ -519,9 +558,6 @@
               "pageSize": {
                 "type": "integer",
                 "format": "int32"
-              },
-              "unpaged": {
-                "type": "boolean"
               }
             }
           },
