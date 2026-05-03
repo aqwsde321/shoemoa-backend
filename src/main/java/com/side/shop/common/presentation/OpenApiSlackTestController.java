@@ -11,4 +11,9 @@ public class OpenApiSlackTestController {
     public Map<String, String> openApiSlackTest() {
         return Map.of("status", "openapi-slack-test");
     }
+
+    @GetMapping("/api/openapi-slack-test-v2")
+    public Map<String, String> openApiSlackTestV2() {
+        return Map.of("status", "openapi-slack-test-v2");
+    }
 }

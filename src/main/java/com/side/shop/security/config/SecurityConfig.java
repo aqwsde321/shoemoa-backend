@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/healthz",
                                 "/api/openapi-slack-test",
+                                "/api/openapi-slack-test-v2",
                                 "/api/members/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
