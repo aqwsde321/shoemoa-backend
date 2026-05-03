@@ -22,3 +22,14 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
+
+jwt:
+  secret: test-secret-key-for-ci-that-is-long-enough-for-jwt-signing
+  expiration: 3600000
+  refresh-expiration: 604800000
+
+app:
+  admin:
+    initial-password: test1234!
+  cors:
+    allowed-origins: http://localhost:3000
