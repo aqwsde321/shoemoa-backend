@@ -1,0 +1,236 @@
+name: OpenAPI Slack Report
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Slack report target environment
+        required: true
+        default: dev
+        type: choice
+        options:
+          - dev
+          - stg
+          - prod
+
+jobs:
+  openapi-change-report:
+    name: OpenAPI Change Report
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    permissions:
+      contents: write
+      actions: read
+    concurrency:
+      group: openapi-baseline-${{ github.repository }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout backend repository
+        uses: actions/checkout@v4
+
+      - name: Set report variables
+        id: vars
+        env:
+          TARGET_ENV: ${{ inputs.target }}
+        run: |
+          case "$TARGET_ENV" in
+            dev)
+              echo "baseline_path=dev/endpoints.json" >> "$GITHUB_OUTPUT"
+              echo "artifact_name=openapi-change-report-dev" >> "$GITHUB_OUTPUT"
+              echo "title_prefix=[DEV]" >> "$GITHUB_OUTPUT"
+              ;;
+            stg)
+              echo "baseline_path=stg/endpoints.json" >> "$GITHUB_OUTPUT"
+              echo "artifact_name=openapi-change-report-stg" >> "$GITHUB_OUTPUT"
+              echo "title_prefix=[STG]" >> "$GITHUB_OUTPUT"
+              ;;
+            prod)
+              echo "baseline_path=prod/endpoints.json" >> "$GITHUB_OUTPUT"
+              echo "artifact_name=openapi-change-report-prod" >> "$GITHUB_OUTPUT"
+              echo "title_prefix=[PROD]" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::Unsupported target environment: $TARGET_ENV"
+              exit 1
+              ;;
+          esac
+
+      - name: Check OpenAPI baseline branch
+        id: baseline_branch
+        run: |
+          if git ls-remote --exit-code --heads origin openapi-baseline >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout OpenAPI baseline
+        if: steps.baseline_branch.outputs.exists == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: openapi-baseline
+          path: baseline
+
+      - name: Initialize OpenAPI baseline
+        if: steps.baseline_branch.outputs.exists != 'true'
+        run: |
+          mkdir -p baseline
+          git -C baseline init
+          git -C baseline remote add origin "$(git config --get remote.origin.url)"
+          if git config --local --get http.https://github.com/.extraheader >/dev/null; then
+            git -C baseline config http.https://github.com/.extraheader "$(git config --local --get http.https://github.com/.extraheader)"
+          fi
+          git -C baseline checkout --orphan openapi-baseline
+
+      - name: Restore previous catalog baseline
+        env:
+          BASELINE_PATH: ${{ steps.vars.outputs.baseline_path }}
+        run: |
+          mkdir -p openapi/review/catalog
+          if [ -f "baseline/$BASELINE_PATH" ]; then
+            cp "baseline/$BASELINE_PATH" openapi/review/catalog/endpoints.json
+          fi
+
+      - name: Download deployed OpenAPI spec
+        env:
+          TARGET_ENV: ${{ inputs.target }}
+          DEV_OAS_URL: ${{ secrets.DEV_OAS_URL }}
+          STG_OAS_URL: ${{ secrets.STG_OAS_URL }}
+          PROD_OAS_URL: ${{ secrets.PROD_OAS_URL }}
+          OAS_AUTH_HEADER: ${{ secrets.OAS_AUTH_HEADER }}
+          DEV_OAS_AUTH_HEADER: ${{ secrets.DEV_OAS_AUTH_HEADER }}
+          STG_OAS_AUTH_HEADER: ${{ secrets.STG_OAS_AUTH_HEADER }}
+          PROD_OAS_AUTH_HEADER: ${{ secrets.PROD_OAS_AUTH_HEADER }}
+        run: |
+          case "$TARGET_ENV" in
+            dev)
+              OAS_URL="$DEV_OAS_URL"
+              ENV_AUTH_HEADER="$DEV_OAS_AUTH_HEADER"
+              ;;
+            stg)
+              OAS_URL="$STG_OAS_URL"
+              ENV_AUTH_HEADER="$STG_OAS_AUTH_HEADER"
+              ;;
+            prod)
+              OAS_URL="$PROD_OAS_URL"
+              ENV_AUTH_HEADER="$PROD_OAS_AUTH_HEADER"
+              ;;
+          esac
+
+          AUTH_HEADER="${ENV_AUTH_HEADER:-$OAS_AUTH_HEADER}"
+
+          if [ -z "$OAS_URL" ]; then
+            echo "::error::OpenAPI URL secret is empty for target environment: $TARGET_ENV"
+            exit 1
+          fi
+
+          case "$OAS_URL" in
+            http://localhost*|https://localhost*|http://127.0.0.1*|https://127.0.0.1*)
+              echo "::error::OpenAPI URL must point to a deployed server, not localhost: $OAS_URL"
+              exit 1
+              ;;
+          esac
+
+          mkdir -p openapi/_internal/source
+
+          for attempt in $(seq 1 20); do
+            if [ -n "$AUTH_HEADER" ]; then
+              curl -fsSL -H "$AUTH_HEADER" "$OAS_URL" -o openapi/_internal/source/openapi.json && exit 0
+            else
+              curl -fsSL "$OAS_URL" -o openapi/_internal/source/openapi.json && exit 0
+            fi
+
+            echo "Waiting for deployed OpenAPI spec... attempt=${attempt}"
+            sleep 5
+          done
+
+          echo "::error::Failed to download deployed OpenAPI spec"
+          exit 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate OpenAPI change report
+        run: npx --yes openapi-projector catalog
+
+      - name: Detect OpenAPI changes
+        id: changes
+        run: |
+          node <<'NODE' >> "$GITHUB_OUTPUT"
+          const fs = require('node:fs');
+          const changes = JSON.parse(fs.readFileSync('openapi/changes.json', 'utf8'));
+          const added = Array.isArray(changes.added) ? changes.added.length : 0;
+          const removed = Array.isArray(changes.removed) ? changes.removed.length : 0;
+          const contractChanged = Array.isArray(changes.contractChanged)
+            ? changes.contractChanged.length
+            : 0;
+          const docChanged = Array.isArray(changes.docChanged) ? changes.docChanged.length : 0;
+          const count = added + removed + contractChanged + docChanged;
+          const shouldNotify = changes.baseline !== true && count > 0;
+
+          console.log(`changed=${shouldNotify ? 'true' : 'false'}`);
+          console.log(`summary=+${added} / -${removed} / contract ${contractChanged} / doc ${docChanged}`);
+          NODE
+
+      - name: Upload full OpenAPI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vars.outputs.artifact_name }}
+          path: |
+            openapi/changes.md
+            openapi/changes.json
+          if-no-files-found: ignore
+
+      - name: Send Slack report
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          CHANGE_SUMMARY: ${{ steps.changes.outputs.summary }}
+          TITLE_PREFIX: ${{ steps.vars.outputs.title_prefix }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const report = fs.readFileSync('openapi/changes.md', 'utf8');
+          const maxReportLength = 3200;
+          const trimmedReport =
+            report.length > maxReportLength
+              ? `${report.slice(0, maxReportLength)}\n\n...truncated. See the GitHub Actions artifact for the full report.`
+              : report;
+          const payload = {
+            text: `${process.env.TITLE_PREFIX} OpenAPI 변경 감지: ${process.env.CHANGE_SUMMARY}\n\n\`\`\`${trimmedReport}\`\`\``,
+          };
+
+          fs.writeFileSync('slack-payload.json', JSON.stringify(payload));
+          NODE
+
+          curl -fsSL \
+            -X POST \
+            -H "Content-Type: application/json" \
+            --data @slack-payload.json \
+            "$SLACK_WEBHOOK_URL"
+
+      - name: Update OpenAPI baseline
+        env:
+          TARGET_ENV: ${{ inputs.target }}
+          BASELINE_PATH: ${{ steps.vars.outputs.baseline_path }}
+        run: |
+          BASELINE_DIR="$(dirname "$BASELINE_PATH")"
+          mkdir -p "baseline/$BASELINE_DIR"
+          cp openapi/review/catalog/endpoints.json "baseline/$BASELINE_PATH"
+
+          cd baseline
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$BASELINE_PATH"
+
+          if git diff --cached --quiet; then
+            echo "No baseline changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore(openapi): ${TARGET_ENV} 기준선 갱신"
+          git push origin HEAD:openapi-baseline

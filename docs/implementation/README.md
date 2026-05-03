@@ -11,3 +11,7 @@
 ### ⚙️ infrastructure
 AWS S3, CloudFront CDN 등 프로젝트에서 사용하는 인프라 관련 설정 및 구현 방법을 설명합니다.
 - **AWS_S3_CDN_SETTING.md**: AWS S3와 CloudFront를 사용한 이미지 업로드 및 CDN 배포 설정 가이드
+
+### 🔔 OpenAPI
+배포된 Swagger/OpenAPI 변경을 팀에 공지하는 CI 설정을 설명합니다.
+- **OPENAPI_SLACK_REPORT.md**: OpenAPI 변경 Slack 공지 workflow 설정 가이드
