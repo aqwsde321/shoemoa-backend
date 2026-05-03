@@ -1,0 +1,11 @@
+.git
+.gradle
+.gradle_cache
+build
+.idea
+.vscode
+.env
+.env.*
+Dockerfile
+README.md
+docs
