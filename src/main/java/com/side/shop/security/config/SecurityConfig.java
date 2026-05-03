@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 인증 불필요 경로
                         .requestMatchers(
+                                "/healthz",
                                 "/api/members/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
