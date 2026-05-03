@@ -12,6 +12,11 @@ Workflow:
 
 - `.github/workflows/openapi-slack-report.yml`
 
+자동 실행:
+
+- `main` push CI 성공 후 `dev` 대상으로 실행
+- Render 배포 반영을 기다리기 위해 기본 180초 대기 후 `/v3/api-docs`를 조회
+
 수동 실행 대상:
 
 - `dev`
@@ -22,7 +27,7 @@ Workflow:
 
 ```text
 배포 완료
--> OpenAPI Slack Report workflow 수동 실행
+-> CI 성공 후 OpenAPI Slack Report workflow 자동 실행 또는 수동 실행
 -> 배포된 /v3/api-docs 다운로드
 -> 이전 openapi/review/catalog/endpoints.json 복원
 -> npx --yes openapi-projector catalog 실행
@@ -78,7 +83,7 @@ stg/endpoints.json
 prod/endpoints.json
 ```
 
-첫 실행에서는 이전 기준선이 없으므로 Slack 공지를 보내지 않고 기준선만 저장합니다. 두 번째 실행부터 변경이 있을 때 Slack 공지가 전송됩니다.
+첫 실행에서는 이전 기준선이 없으므로 기준선을 저장하고 Slack에 기준선 생성 메시지를 보냅니다. 두 번째 실행부터 변경이 있을 때 Slack 변경 공지가 전송됩니다.
 
 ## 산출물
 

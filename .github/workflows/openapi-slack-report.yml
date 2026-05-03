@@ -1,6 +1,9 @@
 name: OpenAPI Slack Report
 
 on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       target:
@@ -12,12 +15,24 @@ on:
           - dev
           - stg
           - prod
+      deploy_wait_seconds:
+        description: Seconds to wait before downloading deployed OpenAPI spec
+        required: true
+        default: "0"
 
 jobs:
   openapi-change-report:
     name: OpenAPI Change Report
+    if: >
+      (github.event_name == 'workflow_dispatch') ||
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
     runs-on: ubuntu-latest
-    environment: ${{ inputs.target }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'dev' }}
     permissions:
       contents: write
       actions: read
@@ -32,8 +47,10 @@ jobs:
       - name: Set report variables
         id: vars
         env:
-          TARGET_ENV: ${{ inputs.target }}
+          TARGET_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'dev' }}
         run: |
+          echo "target_env=$TARGET_ENV" >> "$GITHUB_OUTPUT"
+
           case "$TARGET_ENV" in
             dev)
               echo "baseline_path=dev/endpoints.json" >> "$GITHUB_OUTPUT"
@@ -55,6 +72,15 @@ jobs:
               exit 1
               ;;
           esac
+
+      - name: Wait for deployed service
+        env:
+          DEPLOY_WAIT_SECONDS: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_wait_seconds || '180' }}
+        run: |
+          if [ "$DEPLOY_WAIT_SECONDS" -gt 0 ]; then
+            echo "Waiting ${DEPLOY_WAIT_SECONDS}s for Render deploy to publish the latest OpenAPI spec."
+            sleep "$DEPLOY_WAIT_SECONDS"
+          fi
 
       - name: Check OpenAPI baseline branch
         id: baseline_branch
@@ -98,7 +124,7 @@ jobs:
 
       - name: Download deployed OpenAPI spec
         env:
-          TARGET_ENV: ${{ inputs.target }}
+          TARGET_ENV: ${{ steps.vars.outputs.target_env }}
           DEV_OAS_URL: ${{ secrets.DEV_OAS_URL || vars.DEV_OAS_URL || 'https://shoemoa-backend.onrender.com/v3/api-docs' }}
           STG_OAS_URL: ${{ secrets.STG_OAS_URL || vars.STG_OAS_URL }}
           PROD_OAS_URL: ${{ secrets.PROD_OAS_URL || vars.PROD_OAS_URL }}
@@ -177,8 +203,10 @@ jobs:
           const count = added + removed + contractChanged + docChanged;
           const hasBaseline = process.env.BASELINE_EXISTS === 'true';
           const shouldNotify = hasBaseline && changes.baseline !== true && count > 0;
+          const shouldNotifyBaseline = !hasBaseline;
 
           console.log(`changed=${shouldNotify ? 'true' : 'false'}`);
+          console.log(`baseline_initialized=${shouldNotifyBaseline ? 'true' : 'false'}`);
           console.log(`summary=+${added} / -${removed} / contract ${contractChanged} / doc ${docChanged}`);
           NODE
 
@@ -193,11 +221,12 @@ jobs:
           if-no-files-found: ignore
 
       - name: Send Slack report
-        if: steps.changes.outputs.changed == 'true'
+        if: steps.changes.outputs.changed == 'true' || steps.changes.outputs.baseline_initialized == 'true'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           CHANGE_SUMMARY: ${{ steps.changes.outputs.summary }}
           TITLE_PREFIX: ${{ steps.vars.outputs.title_prefix }}
+          BASELINE_INITIALIZED: ${{ steps.changes.outputs.baseline_initialized }}
         run: |
           if [ -z "$SLACK_WEBHOOK_URL" ]; then
             echo "::error::SLACK_WEBHOOK_URL secret is required when OpenAPI changes are detected."
@@ -206,14 +235,18 @@ jobs:
 
           node <<'NODE'
           const fs = require('node:fs');
+          const baselineInitialized = process.env.BASELINE_INITIALIZED === 'true';
           const report = fs.readFileSync('openapi/changes.md', 'utf8');
           const maxReportLength = 3200;
           const trimmedReport =
             report.length > maxReportLength
               ? `${report.slice(0, maxReportLength)}\n\n...truncated. See the GitHub Actions artifact for the full report.`
               : report;
+          const title = baselineInitialized
+            ? `${process.env.TITLE_PREFIX} OpenAPI 기준선 생성`
+            : `${process.env.TITLE_PREFIX} OpenAPI 변경 감지: ${process.env.CHANGE_SUMMARY}`;
           const payload = {
-            text: `${process.env.TITLE_PREFIX} OpenAPI 변경 감지: ${process.env.CHANGE_SUMMARY}\n\n\`\`\`${trimmedReport}\`\`\``,
+            text: `${title}\n\n\`\`\`${trimmedReport}\`\`\``,
           };
 
           fs.writeFileSync('slack-payload.json', JSON.stringify(payload));
@@ -227,7 +260,7 @@ jobs:
 
       - name: Update OpenAPI baseline
         env:
-          TARGET_ENV: ${{ inputs.target }}
+          TARGET_ENV: ${{ steps.vars.outputs.target_env }}
           BASELINE_PATH: ${{ steps.vars.outputs.baseline_path }}
         run: |
           BASELINE_DIR="$(dirname "$BASELINE_PATH")"
