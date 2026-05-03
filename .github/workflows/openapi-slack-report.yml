@@ -54,16 +54,19 @@ jobs:
           case "$TARGET_ENV" in
             dev)
               echo "baseline_path=dev/endpoints.json" >> "$GITHUB_OUTPUT"
+              echo "raw_baseline_path=dev/openapi.json" >> "$GITHUB_OUTPUT"
               echo "artifact_name=openapi-change-report-dev" >> "$GITHUB_OUTPUT"
               echo "title_prefix=[DEV]" >> "$GITHUB_OUTPUT"
               ;;
             stg)
               echo "baseline_path=stg/endpoints.json" >> "$GITHUB_OUTPUT"
+              echo "raw_baseline_path=stg/openapi.json" >> "$GITHUB_OUTPUT"
               echo "artifact_name=openapi-change-report-stg" >> "$GITHUB_OUTPUT"
               echo "title_prefix=[STG]" >> "$GITHUB_OUTPUT"
               ;;
             prod)
               echo "baseline_path=prod/endpoints.json" >> "$GITHUB_OUTPUT"
+              echo "raw_baseline_path=prod/openapi.json" >> "$GITHUB_OUTPUT"
               echo "artifact_name=openapi-change-report-prod" >> "$GITHUB_OUTPUT"
               echo "title_prefix=[PROD]" >> "$GITHUB_OUTPUT"
               ;;
@@ -75,12 +78,38 @@ jobs:
 
       - name: Wait for deployed service
         env:
-          DEPLOY_WAIT_SECONDS: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_wait_seconds || '180' }}
+          DEPLOY_WAIT_SECONDS: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_wait_seconds || '900' }}
+          EXPECTED_COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
+          DEV_HEALTH_CHECK_URL: ${{ secrets.DEV_HEALTH_CHECK_URL || vars.DEV_HEALTH_CHECK_URL || 'https://shoemoa-backend.onrender.com/healthz' }}
         run: |
-          if [ "$DEPLOY_WAIT_SECONDS" -gt 0 ]; then
-            echo "Waiting ${DEPLOY_WAIT_SECONDS}s for Render deploy to publish the latest OpenAPI spec."
-            sleep "$DEPLOY_WAIT_SECONDS"
+          if [ "$DEPLOY_WAIT_SECONDS" -le 0 ]; then
+            exit 0
           fi
+
+          if [ -z "$EXPECTED_COMMIT_SHA" ]; then
+            echo "Waiting ${DEPLOY_WAIT_SECONDS}s before downloading OpenAPI spec."
+            sleep "$DEPLOY_WAIT_SECONDS"
+            exit 0
+          fi
+
+          echo "Waiting up to ${DEPLOY_WAIT_SECONDS}s for Render deploy commit ${EXPECTED_COMMIT_SHA}."
+          deadline=$((SECONDS + DEPLOY_WAIT_SECONDS))
+
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            health_json="$(curl -fsSL "$DEV_HEALTH_CHECK_URL" || true)"
+            deployed_commit="$(printf '%s' "$health_json" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("commit", ""))' 2>/dev/null || true)"
+
+            if [ "$deployed_commit" = "$EXPECTED_COMMIT_SHA" ]; then
+              echo "Render deploy is ready: ${deployed_commit}"
+              exit 0
+            fi
+
+            echo "Waiting for Render deploy... current=${deployed_commit:-unknown}"
+            sleep 10
+          done
+
+          echo "::error::Render deploy did not reach expected commit within ${DEPLOY_WAIT_SECONDS}s."
+          exit 1
 
       - name: Check OpenAPI baseline branch
         id: baseline_branch
@@ -113,6 +142,7 @@ jobs:
         id: baseline_file
         env:
           BASELINE_PATH: ${{ steps.vars.outputs.baseline_path }}
+          RAW_BASELINE_PATH: ${{ steps.vars.outputs.raw_baseline_path }}
         run: |
           mkdir -p openapi/review/catalog
           if [ -f "baseline/$BASELINE_PATH" ]; then
@@ -120,6 +150,11 @@ jobs:
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -f "baseline/$RAW_BASELINE_PATH" ]; then
+            mkdir -p openapi/review/source
+            cp "baseline/$RAW_BASELINE_PATH" openapi/review/source/previous-openapi.json
           fi
 
       - name: Download deployed OpenAPI spec
@@ -218,6 +253,8 @@ jobs:
           path: |
             openapi/changes.md
             openapi/changes.json
+            openapi/_internal/source/openapi.json
+            openapi/review/source/previous-openapi.json
           if-no-files-found: ignore
 
       - name: Send Slack report
@@ -262,15 +299,20 @@ jobs:
         env:
           TARGET_ENV: ${{ steps.vars.outputs.target_env }}
           BASELINE_PATH: ${{ steps.vars.outputs.baseline_path }}
+          RAW_BASELINE_PATH: ${{ steps.vars.outputs.raw_baseline_path }}
         run: |
           BASELINE_DIR="$(dirname "$BASELINE_PATH")"
           mkdir -p "baseline/$BASELINE_DIR"
+          RAW_BASELINE_DIR="$(dirname "$RAW_BASELINE_PATH")"
+          mkdir -p "baseline/$RAW_BASELINE_DIR"
+
           cp openapi/review/catalog/endpoints.json "baseline/$BASELINE_PATH"
+          cp openapi/_internal/source/openapi.json "baseline/$RAW_BASELINE_PATH"
 
           cd baseline
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "$BASELINE_PATH"
+          git add "$BASELINE_PATH" "$RAW_BASELINE_PATH"
 
           if git diff --cached --quiet; then
             echo "No baseline changes to commit."
