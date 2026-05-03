@@ -32,12 +32,23 @@ Workflow:
 
 ## GitHub Secrets
 
-Repository 또는 Environment secrets에 아래 값을 설정합니다.
+`dev` 대상은 기본값으로 Render 백엔드 Swagger 문서를 사용합니다.
+
+```text
+https://shoemoa-backend.onrender.com/v3/api-docs
+```
+
+환경별 URL을 바꾸려면 Repository/Environment variables 또는 secrets에 아래 값을 설정합니다. secret이 variable보다 우선합니다.
 
 ```text
 DEV_OAS_URL=https://dev-api.example.com/v3/api-docs
 STG_OAS_URL=https://stg-api.example.com/v3/api-docs
 PROD_OAS_URL=https://api.example.com/v3/api-docs
+```
+
+Slack 공지를 보내려면 Repository/Environment secrets에 아래 값을 설정합니다.
+
+```text
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 ```
 

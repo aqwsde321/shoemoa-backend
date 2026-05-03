@@ -84,20 +84,24 @@ jobs:
           git -C baseline checkout --orphan openapi-baseline
 
       - name: Restore previous catalog baseline
+        id: baseline_file
         env:
           BASELINE_PATH: ${{ steps.vars.outputs.baseline_path }}
         run: |
           mkdir -p openapi/review/catalog
           if [ -f "baseline/$BASELINE_PATH" ]; then
             cp "baseline/$BASELINE_PATH" openapi/review/catalog/endpoints.json
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Download deployed OpenAPI spec
         env:
           TARGET_ENV: ${{ inputs.target }}
-          DEV_OAS_URL: ${{ secrets.DEV_OAS_URL }}
-          STG_OAS_URL: ${{ secrets.STG_OAS_URL }}
-          PROD_OAS_URL: ${{ secrets.PROD_OAS_URL }}
+          DEV_OAS_URL: ${{ secrets.DEV_OAS_URL || vars.DEV_OAS_URL || 'https://shoemoa-backend.onrender.com/v3/api-docs' }}
+          STG_OAS_URL: ${{ secrets.STG_OAS_URL || vars.STG_OAS_URL }}
+          PROD_OAS_URL: ${{ secrets.PROD_OAS_URL || vars.PROD_OAS_URL }}
           OAS_AUTH_HEADER: ${{ secrets.OAS_AUTH_HEADER }}
           DEV_OAS_AUTH_HEADER: ${{ secrets.DEV_OAS_AUTH_HEADER }}
           STG_OAS_AUTH_HEADER: ${{ secrets.STG_OAS_AUTH_HEADER }}
@@ -158,6 +162,8 @@ jobs:
 
       - name: Detect OpenAPI changes
         id: changes
+        env:
+          BASELINE_EXISTS: ${{ steps.baseline_file.outputs.exists }}
         run: |
           node <<'NODE' >> "$GITHUB_OUTPUT"
           const fs = require('node:fs');
@@ -169,7 +175,8 @@ jobs:
             : 0;
           const docChanged = Array.isArray(changes.docChanged) ? changes.docChanged.length : 0;
           const count = added + removed + contractChanged + docChanged;
-          const shouldNotify = changes.baseline !== true && count > 0;
+          const hasBaseline = process.env.BASELINE_EXISTS === 'true';
+          const shouldNotify = hasBaseline && changes.baseline !== true && count > 0;
 
           console.log(`changed=${shouldNotify ? 'true' : 'false'}`);
           console.log(`summary=+${added} / -${removed} / contract ${contractChanged} / doc ${docChanged}`);
@@ -192,6 +199,11 @@ jobs:
           CHANGE_SUMMARY: ${{ steps.changes.outputs.summary }}
           TITLE_PREFIX: ${{ steps.vars.outputs.title_prefix }}
         run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "::error::SLACK_WEBHOOK_URL secret is required when OpenAPI changes are detected."
+            exit 1
+          fi
+
           node <<'NODE'
           const fs = require('node:fs');
           const report = fs.readFileSync('openapi/changes.md', 'utf8');
