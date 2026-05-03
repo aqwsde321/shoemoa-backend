@@ -20,7 +20,7 @@ Spring Boot를 기반으로 RESTful API를 제공하며, 프론트엔드와 연�
 
 - **`architecture/`**: 핵심 설계 원칙, 코드 구조, 컨벤션
 - **`testing/`**: 테스트 전략 및 작성 가이드
-- **`implementation/`**: 특정 기능/인프라 구현 상세 (보안, AWS 등)
+- **`implementation/`**: 특정 기능/인프라 구현 상세 (보안, 배포 등)
 - **`troubleshooting/`**: 개발 중 발생한 문제 및 해결 기록
 
 ---
@@ -31,8 +31,7 @@ Spring Boot를 기반으로 RESTful API를 제공하며, 프론트엔드와 연�
 - **Language**: Java 17
 - **Database**: PostgreSQL, H2 (for testing)
 - **Query**: QueryDSL
-- **Storage**: AWS S3 (for Images)
-- **CDN**: AWS CloudFront
+- **Storage**: Supabase Storage 전환 예정
 - **Email**: JavaMailSender (Google SMTP)
 - **Build**: Gradle
 - **Code Style**: Spotless (Palantir Java Format)
@@ -117,7 +116,7 @@ Shoemoa 백엔드 시스템은 도메인 주도 설계(DDD) 원칙에 따라 개
 ```
 
 ### Run Application
-실행 전, 프로젝트 루트에 `.env` 파일을 생성하여 필요한 환경 변수(DB, AWS, Email 등)를 설정해야 합니다.
+실행 전, 프로젝트 루트에 `.env` 파일을 생성하여 필요한 환경 변수(DB, Email 등)를 설정해야 합니다.
 
 **1. Using Gradle (local profile)**  
 H2 인메모리 DB를 사용하여 로컬에서 빠르게 실행합니다.
@@ -151,12 +150,37 @@ H2 인메모리 DB를 사용하여 로컬에서 빠르게 실행합니다.
 
 ---
 
+## 🔁 CI/CD (Render)
+
+현재 브랜치 기준으로 GitHub Actions + Render Deploy Hook 방식으로 배포합니다.
+
+- `/.github/workflows/ci.yml`
+  - `main` push / PR 시 테스트 실행
+- `/.github/workflows/deploy-render.yml`
+  - CI 성공 후 `main` push에만 Render 배포 훅 호출
+  - 수동 실행(`workflow_dispatch`)도 가능
+
+### GitHub Secrets
+
+리포지토리 `Settings > Secrets and variables > Actions`에 아래 값 추가:
+
+- `RENDER_DEPLOY_HOOK_URL`: Render 서비스의 Deploy Hook URL
+
+### Render 환경 변수
+
+Render 서비스 환경 변수는 `/.env.render.example` 파일을 기준으로 설정합니다.
+
+주의:
+- 이미지 업로드는 Supabase Storage 연동 전까지 비활성화되어 있습니다.
+
+---
+
 ## 💡 Additional Information
 
 ### Configuration Profiles
 이 프로젝트는 Spring Profile을 통해 환경별 설정을 분리합니다.
-- **`local`**: 개발 환경용 프로필. H2 인메모리 DB를 사용하고, S3 대신 로컬에 파일을 업로드하는 `FakeImageUploader`가 활성화될 수 있습니다. (`./gradlew bootRun`의 기본값)
-- **`prod`**: 운영 환경용 프로필. PostgreSQL DB와 실제 AWS S3 연동을 사용합니다. Docker로 실행 시 이 프로필을 사용하는 것이 권장됩니다.
+- **`local`**: 개발 환경용 프로필. 로컬 실행 환경에서 사용합니다.
+- **`prod`**: 운영 환경용 프로필. PostgreSQL DB를 사용합니다.
 
 ### Error Handling
 API에서 오류 발생 시, 다음과 같은 일관된 형식의 JSON 응답을 반환합니다.

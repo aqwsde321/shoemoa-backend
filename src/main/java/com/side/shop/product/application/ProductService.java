@@ -48,13 +48,13 @@ public class ProductService {
         productRepository.save(product);
 
         /* TODO
-         * S3 업로드는 트랜잭션 롤백 대상이 아님
-         * 중간에 S3는 성공했는데 DB가 롤백되면 S3에 고아 이미지 남음
+         * 외부 스토리지 업로드는 트랜잭션 롤백 대상이 아님
+         * 중간에 업로드는 성공했는데 DB가 롤백되면 고아 이미지가 남음
          * - 실패하면 그냥 전체 실패로 보고 수동 정리
          * - 이미지 업로드를 트랜잭션 밖에서
          * - 이벤트 기반(@TransactionalEventListener(AFTER_COMMIT))
          */
-        // 1. S3 업로드
+        // 1. 이미지 업로드
         List<String> imageUrls = imageUploader.uploadProductImages(product.getId(), images);
 
         // 2. Entity에 위임
