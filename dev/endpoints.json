@@ -1,0 +1,904 @@
+{
+  "version": 2,
+  "endpoints": [
+    {
+      "id": "post-api-members-login",
+      "method": "post",
+      "path": "/api/members/login",
+      "summary": "로그인",
+      "description": "이메일과 비밀번호로 로그인하여 JWT Access Token을 발급받습니다. Refresh Token은 HttpOnly 쿠키로 설정됩니다.",
+      "operationId": "login",
+      "tags": [
+        "Member"
+      ],
+      "rawFingerprint": "901db3cbcf320435c14d5274f8d8c5e6d96277e3e756a36ab5fb78ea63b2364d",
+      "contractFingerprint": "e515ef2b2ef8386feb6d838153a4d55498104dfb5c1ebd0344431cbb0233479f",
+      "contractSnapshot": {
+        "method": "post",
+        "path": "/api/members/login",
+        "operation": {
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginRequestDto"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/LoginResponseDto"
+                  }
+                }
+              }
+            },
+            "400": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "parameters": []
+        },
+        "referencedSchemas": {
+          "ErrorResponse": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "LoginRequestDto": {
+            "required": [
+              "email",
+              "password"
+            ],
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "password": {
+                "type": "string"
+              }
+            }
+          },
+          "LoginResponseDto": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "post-api-members-reissue",
+      "method": "post",
+      "path": "/api/members/reissue",
+      "summary": "토큰 재발급",
+      "description": "Cookie에 저장된 Refresh Token을 사용하여 새로운 Access Token을 발급받습니다.",
+      "operationId": "reissue",
+      "tags": [
+        "Member"
+      ],
+      "rawFingerprint": "248579c2127cee312b81f98736338213e569f73ff71a011aa7554bfa1fb88f60",
+      "contractFingerprint": "c33a3a5f96644c25662e6a3920c4f0fb551be978fb17c8520e1e0e6bcfbe39bf",
+      "contractSnapshot": {
+        "method": "post",
+        "path": "/api/members/reissue",
+        "operation": {
+          "parameters": [
+            {
+              "name": "refreshToken",
+              "in": "cookie",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TokenResponseDto"
+                  }
+                }
+              }
+            },
+            "400": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "requestBody": null
+        },
+        "referencedSchemas": {
+          "ErrorResponse": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "TokenResponseDto": {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "post-api-members-signup",
+      "method": "post",
+      "path": "/api/members/signup",
+      "summary": "회원가입",
+      "description": "이메일과 비밀번호로 회원가입을 요청하고 인증 메일을 발송합니다.",
+      "operationId": "signup",
+      "tags": [
+        "Member"
+      ],
+      "rawFingerprint": "c43c549271fe77510375641497cd029aecef626a6c9f29009b900475d97432a6",
+      "contractFingerprint": "38a8c1d6b4806028217679fe73e2d084f65b35eab1d0491712939e04b2783dcf",
+      "contractSnapshot": {
+        "method": "post",
+        "path": "/api/members/signup",
+        "operation": {
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupRequestDto"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "201": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MessageResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "409": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "parameters": []
+        },
+        "referencedSchemas": {
+          "ErrorResponse": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "MessageResponse": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
+          },
+          "SignupRequestDto": {
+            "required": [
+              "email",
+              "password"
+            ],
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "password": {
+                "maxLength": 2147483647,
+                "minLength": 8,
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "get-api-members-verify-email",
+      "method": "get",
+      "path": "/api/members/verify-email",
+      "summary": "이메일 인증",
+      "description": "메일로 발송된 링크를 통해 이메일 인증을 완료합니다.",
+      "operationId": "verifyEmail",
+      "tags": [
+        "Member"
+      ],
+      "rawFingerprint": "4344a0e7d35ca1b991672c86da366df379c243425eb7b3019f8852e5fbb86b45",
+      "contractFingerprint": "db88c18c4391e5c130fdabb794334f10ab7287b09d0ccde79c827b80a4c0235c",
+      "contractSnapshot": {
+        "method": "get",
+        "path": "/api/members/verify-email",
+        "operation": {
+          "parameters": [
+            {
+              "name": "email",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "token",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MessageResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "requestBody": null
+        },
+        "referencedSchemas": {
+          "ErrorResponse": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "MessageResponse": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "get-api-openapi-slack-test",
+      "method": "get",
+      "path": "/api/openapi-slack-test",
+      "summary": "",
+      "description": "",
+      "operationId": "openApiSlackTest",
+      "tags": [
+        "open-api-slack-test-controller"
+      ],
+      "rawFingerprint": "e0aa7c701a9fb68aba12be9f9be23233673a8c16bc5b17f08d85546c5f93b10f",
+      "contractFingerprint": "324bcac27ffe8bf10202109283b789840f506223c9fcd43ce3da4844e6e0e41a",
+      "contractSnapshot": {
+        "method": "get",
+        "path": "/api/openapi-slack-test",
+        "operation": {
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "parameters": [],
+          "requestBody": null
+        },
+        "referencedSchemas": {}
+      }
+    },
+    {
+      "id": "get-api-products",
+      "method": "get",
+      "path": "/api/products",
+      "summary": "",
+      "description": "",
+      "operationId": "searchProducts",
+      "tags": [
+        "product-controller"
+      ],
+      "rawFingerprint": "1521723af5bea0856e97d15a5c3f54eff340679ce949b944ea0270b9605fc12f",
+      "contractFingerprint": "1a3f18a859350b9d48f48176c41640a9fa70c4ba34b3d0c1cba3237342257175",
+      "contractSnapshot": {
+        "method": "get",
+        "path": "/api/products",
+        "operation": {
+          "parameters": [
+            {
+              "name": "condition",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/schemas/ProductSearchCond"
+              }
+            },
+            {
+              "name": "pageable",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/schemas/Pageable"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/PageProductSearchResult"
+                  }
+                }
+              }
+            }
+          },
+          "requestBody": null
+        },
+        "referencedSchemas": {
+          "Pageable": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "minimum": 0,
+                "type": "integer",
+                "format": "int32"
+              },
+              "size": {
+                "minimum": 1,
+                "type": "integer",
+                "format": "int32"
+              },
+              "sort": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "PageableObject": {
+            "type": "object",
+            "properties": {
+              "offset": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "sort": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SortObject"
+                }
+              },
+              "paged": {
+                "type": "boolean"
+              },
+              "pageNumber": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "pageSize": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "unpaged": {
+                "type": "boolean"
+              }
+            }
+          },
+          "PageProductSearchResult": {
+            "type": "object",
+            "properties": {
+              "totalPages": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalElements": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "size": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "content": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProductSearchResult"
+                }
+              },
+              "number": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "sort": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SortObject"
+                }
+              },
+              "numberOfElements": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "pageable": {
+                "$ref": "#/components/schemas/PageableObject"
+              },
+              "last": {
+                "type": "boolean"
+              },
+              "first": {
+                "type": "boolean"
+              },
+              "empty": {
+                "type": "boolean"
+              }
+            }
+          },
+          "ProductSearchCond": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "productSize": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "color": {
+                "type": "string"
+              },
+              "minPrice": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "maxPrice": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "sortType": {
+                "type": "string",
+                "enum": [
+                  "LATEST",
+                  "PRICE_ASC",
+                  "PRICE_DESC",
+                  "NAME_ASC"
+                ]
+              }
+            }
+          },
+          "ProductSearchResult": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "name": {
+                "type": "string"
+              },
+              "brand": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "price": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "thumbnailUrl": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "SortObject": {
+            "type": "object",
+            "properties": {
+              "direction": {
+                "type": "string"
+              },
+              "nullHandling": {
+                "type": "string"
+              },
+              "ascending": {
+                "type": "boolean"
+              },
+              "property": {
+                "type": "string"
+              },
+              "ignoreCase": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "post-api-products",
+      "method": "post",
+      "path": "/api/products",
+      "summary": "",
+      "description": "",
+      "operationId": "createProduct",
+      "tags": [
+        "product-controller"
+      ],
+      "rawFingerprint": "94d5410e09b426399b33c294934aacea38d5351140208946593d7a27dfbe5589",
+      "contractFingerprint": "b1307abbe5ac48c8c07d94ce7267cd9584d186d3ab1e3a3d875266380a31a223",
+      "contractSnapshot": {
+        "method": "post",
+        "path": "/api/products",
+        "operation": {
+          "requestBody": {
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "required": [
+                    "data",
+                    "images"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CreateProductDto"
+                    },
+                    "images": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/CreateProductResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "parameters": []
+        },
+        "referencedSchemas": {
+          "CreateProductDto": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "brand": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "price": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CreateProductOptionDto"
+                }
+              }
+            }
+          },
+          "CreateProductOptionDto": {
+            "type": "object",
+            "properties": {
+              "size": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "stock": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          "CreateProductResponseDto": {
+            "type": "object",
+            "properties": {
+              "productId": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "get-api-products-by-product-id",
+      "method": "get",
+      "path": "/api/products/{productId}",
+      "summary": "",
+      "description": "",
+      "operationId": "getProductDetail",
+      "tags": [
+        "product-controller"
+      ],
+      "rawFingerprint": "e930bcf03be25794a63ee655975d46d39ecf7ba8145460354bc92e3aba762973",
+      "contractFingerprint": "decf66583751bce0b32f7fd04be90cfad58e147156c5d40019471d0b18f0a189",
+      "contractSnapshot": {
+        "method": "get",
+        "path": "/api/products/{productId}",
+        "operation": {
+          "parameters": [
+            {
+              "name": "productId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ProductDetailDto"
+                  }
+                }
+              }
+            }
+          },
+          "requestBody": null
+        },
+        "referencedSchemas": {
+          "ProductDetailDto": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "brand": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "price": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProductOptionDetailDto"
+                }
+              },
+              "images": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProductImageDto"
+                }
+              }
+            }
+          },
+          "ProductImageDto": {
+            "type": "object",
+            "properties": {
+              "imageUrl": {
+                "type": "string"
+              },
+              "sortOrder": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "thumbnail": {
+                "type": "boolean"
+              }
+            }
+          },
+          "ProductOptionDetailDto": {
+            "type": "object",
+            "properties": {
+              "size": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "stock": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "get-healthz",
+      "method": "get",
+      "path": "/healthz",
+      "summary": "",
+      "description": "",
+      "operationId": "healthz",
+      "tags": [
+        "health-check-controller"
+      ],
+      "rawFingerprint": "9d7efaa23478713bca9b64337b5df73ee3edf62aa9edc0d16f7c6b62dba60561",
+      "contractFingerprint": "884c0b3649a81e14300ddbd54dc7a8be256467805713b07f4252e38e833e3fd2",
+      "contractSnapshot": {
+        "method": "get",
+        "path": "/healthz",
+        "operation": {
+          "responses": {
+            "200": {
+              "content": {
+                "*/*": {
+                  "schema": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "parameters": [],
+          "requestBody": null
+        },
+        "referencedSchemas": {}
+      }
+    }
+  ]
+}
