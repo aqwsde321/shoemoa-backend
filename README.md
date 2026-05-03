@@ -152,19 +152,13 @@ H2 인메모리 DB를 사용하여 로컬에서 빠르게 실행합니다.
 
 ## 🔁 CI/CD (Render)
 
-현재 브랜치 기준으로 GitHub Actions + Render Deploy Hook 방식으로 배포합니다.
+GitHub Actions CI가 통과하면 Render가 자동 배포합니다.
 
 - `/.github/workflows/ci.yml`
-  - `main` push / PR 시 테스트 실행
-- `/.github/workflows/deploy-render.yml`
-  - CI 성공 후 `main` push에만 Render 배포 훅 호출
-  - 수동 실행(`workflow_dispatch`)도 가능
+  - `main`, `supabase-render-cicd` push 시 테스트 실행
+  - `main` 대상 PR 시 테스트 실행
 
-### GitHub Secrets
-
-리포지토리 `Settings > Secrets and variables > Actions`에 아래 값 추가:
-
-- `RENDER_DEPLOY_HOOK_URL`: Render 서비스의 Deploy Hook URL
+Render 서비스의 `Auto-Deploy`는 `After CI Checks Pass`로 설정합니다.
 
 ### Render 환경 변수
 
