@@ -104,31 +104,31 @@ openapi/_internal/source/openapi.json
 
 `openapi/changes.md`, `changes.json`, 현재 원본 `openapi.json`, 이전 원본 `previous-openapi.json`은 GitHub Actions artifact로 업로드됩니다.
 
-Slack 메시지는 `changes.json`을 기반으로 요약, 커밋, Actions 링크, 변경 endpoint 목록만 간결하게 전송합니다. 전체 상세 내용은 Actions artifact의 `changes.md`와 `changes.json`에서 확인합니다.
+Slack 메시지는 `changes.json`을 기반으로 요약, 커밋, Actions 링크, 변경 endpoint 목록만 간결하게 전송합니다. 가독성을 위해 Slack Block Kit을 사용하고, 계약 변경 상세는 코드 블록으로 표시합니다. 전체 상세 내용은 Actions artifact의 `changes.md`와 `changes.json`에서 확인합니다.
 
 ## Slack 메시지 형식
 
 표시 순서:
 
-1. 🆕 `Added`
-2. 🗑️ `Removed`
-3. 🧩 `Contract Changed`
-4. 📝 `Doc Changed`
+1. `Added`
+2. `Removed`
+3. `Contract Changed`
+4. `Doc Changed`
 
-`Contract Changed`는 endpoint별 표로 표시합니다.
+`Contract Changed`는 endpoint별 코드 블록으로 표시합니다.
 
-- 🟢 `추가`: 새 query/path/header parameter, request/response field 등
-- 🟡 `수정`: required 여부, 타입, format, enum 등 기존 계약 값 변경
-- 🔴 `삭제`: 제거된 parameter, request/response field 등
+- `+ 추가`: 새 query/path/header parameter, request/response field 등
+- `~ 변경`: required 여부, 타입, format, enum 등 기존 계약 값 변경
+- `- 삭제`: 제거된 parameter, request/response field 등
 
-계약 변경 상세는 DTO class 이름으로 감싸지 않고 Java 필드 선언처럼 한 줄로 표시합니다. 삭제된 필드는 Slack 취소선으로 표시하고, 타입을 알 수 없는 required 변경 같은 항목은 필드명과 변경 주석만 표시합니다.
+계약 변경 상세는 DTO class 이름으로 감싸지 않고 Java 필드 선언처럼 한 줄로 표시합니다. 타입을 알 수 없는 required 변경 같은 항목은 필드명과 변경 주석만 표시합니다.
 
 예시:
 
 ```text
-🔴 삭제 | 응답 Body 필드 | ~BigDecimal oldPrice;~
-🟡 변경 | 요청 Query 파라미터 | Integer page; // optional → required
-🟢 추가 | 응답 Body 필드 | String thumbnailUrl;
+- 삭제 | 응답 Body 필드 | BigDecimal oldPrice;
+~ 변경 | 요청 Query 파라미터 | Integer page; // optional → required
++ 추가 | 응답 Body 필드 | String thumbnailUrl;
 ```
 
 Slack에는 요약과 일부 상세만 표시하고, 전체 상세는 Actions artifact의 `changes.md`와 `changes.json`에서 확인합니다.

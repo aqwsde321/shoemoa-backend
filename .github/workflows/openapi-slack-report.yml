@@ -302,21 +302,11 @@ jobs:
           const maxItems = 8;
           const maxRowsPerKind = 4;
           const maxPayloadLength = 3800;
+          const maxBlockTextLength = 2800;
+          const maxBlocks = 45;
           const commit = (process.env.COMMIT_SHA || process.env.GITHUB_SHA || '').slice(0, 7);
-          const lines = [
-            `${baselineInitialized ? '🧭' : '🚨'} *${title}*`,
-            '',
-            `*요약* 🆕 Added \`${added.length}\`  🗑️ Removed \`${removed.length}\`  🧩 Contract \`${contractChanged.length}\`  📝 Doc \`${docChanged.length}\``,
-            `- 전체 엔드포인트: \`${changes.total ?? '-'}\``,
-          ];
-
-          if (commit) {
-            lines.push(`- 커밋: \`${commit}\``);
-          }
-
-          if (process.env.ACTIONS_RUN_URL) {
-            lines.push(`- 상세 리포트: <${process.env.ACTIONS_RUN_URL}|GitHub Actions artifact>`);
-          }
+          const blocks = [];
+          const fallbackLines = [];
 
           function escapeSlack(value) {
             return String(value ?? '')
@@ -330,25 +320,100 @@ jobs:
             return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
           }
 
+          function addBlock(block) {
+            if (blocks.length < maxBlocks) {
+              blocks.push(block);
+            }
+          }
+
+          function truncateBlockText(value) {
+            const text = String(value ?? '');
+            return text.length > maxBlockTextLength
+              ? `${text.slice(0, maxBlockTextLength - 80)}\n... 나머지는 Actions artifact에서 확인`
+              : text;
+          }
+
+          function addSection(text) {
+            addBlock({
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: truncateBlockText(text),
+              },
+            });
+          }
+
+          function addDivider() {
+            addBlock({ type: 'divider' });
+          }
+
+          function addHeader() {
+            addBlock({
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: title.slice(0, 150),
+                emoji: false,
+              },
+            });
+
+            addBlock({
+              type: 'section',
+              fields: [
+                { type: 'mrkdwn', text: `*Added*\n${added.length}` },
+                { type: 'mrkdwn', text: `*Removed*\n${removed.length}` },
+                { type: 'mrkdwn', text: `*Contract*\n${contractChanged.length}` },
+                { type: 'mrkdwn', text: `*Doc*\n${docChanged.length}` },
+              ],
+            });
+
+            const context = [`엔드포인트 ${changes.total ?? '-'}`];
+            if (commit) {
+              context.push(`커밋 ${commit}`);
+            }
+            if (process.env.ACTIONS_RUN_URL) {
+              context.push(`<${process.env.ACTIONS_RUN_URL}|상세 리포트>`);
+            }
+
+            addBlock({
+              type: 'context',
+              elements: [{ type: 'mrkdwn', text: context.join(' · ') }],
+            });
+            addDivider();
+
+            fallbackLines.push(
+              `*${title}*`,
+              `Added ${added.length} / Removed ${removed.length} / Contract ${contractChanged.length} / Doc ${docChanged.length}`,
+              `엔드포인트 ${changes.total ?? '-'}${commit ? ` / 커밋 ${commit}` : ''}`
+            );
+            if (process.env.ACTIONS_RUN_URL) {
+              fallbackLines.push(`상세 리포트: ${process.env.ACTIONS_RUN_URL}`);
+            }
+          }
+
           function endpointLabel(item) {
             const method = String(item.method || '').toUpperCase();
             const summary = item.summary ? ` - ${compact(item.summary, 80)}` : '';
-            return `\`${method}\` \`${compact(item.path, 120)}\`${summary}`;
+            return `*${method}* ${compact(item.path, 120)}${summary}`;
           }
 
-          function addEndpointSection(icon, title, items) {
+          function addEndpointSection(title, items) {
             if (!Array.isArray(items) || items.length === 0) {
               return;
             }
 
-            lines.push('', `*${icon} ${title}* \`${items.length}건\``);
+            const sectionLines = [`*${title}* (${items.length}건)`];
+            fallbackLines.push('', `*${title}* (${items.length}건)`);
             for (const item of items.slice(0, maxItems)) {
-              lines.push(`• ${endpointLabel(item)}`);
+              sectionLines.push(`• ${endpointLabel(item)}`);
+              fallbackLines.push(`• ${endpointLabel(item)}`);
             }
 
             if (items.length > maxItems) {
-              lines.push(`• 외 ${items.length - maxItems}건은 Actions artifact에서 확인`);
+              sectionLines.push(`• 외 ${items.length - maxItems}건은 Actions artifact에서 확인`);
+              fallbackLines.push(`• 외 ${items.length - maxItems}건은 Actions artifact에서 확인`);
             }
+            addSection(sectionLines.join('\n'));
           }
 
           function stripFormatting(value) {
@@ -689,14 +754,14 @@ jobs:
             const declaration = hasKnownType
               ? `${summary.type ? javaTypeFromSummary(summary) : inferredType} ${name};${comment}`
               : `${name};${comment}`;
-            return kind === 'removed' ? `~${declaration}~` : declaration;
+            return declaration;
           }
 
           function contractKindLabel(kind) {
             const meta = {
-              added: ['🟢', '추가'],
-              changed: ['🟡', '변경'],
-              removed: ['🔴', '삭제'],
+              added: ['+', '추가'],
+              changed: ['~', '변경'],
+              removed: ['-', '삭제'],
             }[kind];
             return `${meta[0]} ${meta[1]}`;
           }
@@ -715,36 +780,47 @@ jobs:
               return;
             }
 
-            lines.push('', `*🧩 Contract Changed* \`${items.length}건\``);
+            addSection(`*Contract Changed* (${items.length}건)`);
+            fallbackLines.push('', `*Contract Changed* (${items.length}건)`);
             for (const item of items.slice(0, maxItems)) {
-              lines.push(`• ${endpointLabel(item)}`);
+              fallbackLines.push(`• ${endpointLabel(item)}`);
 
               const rows = Array.isArray(item.comparisonRows) ? item.comparisonRows : [];
               if (item.detailsUnavailable) {
-                lines.push('  ⚪ 상세 비교는 다음 기준선부터 표시됩니다.');
+                const text = `${endpointLabel(item)}\n상세 비교는 다음 기준선부터 표시됩니다.`;
+                addSection(text);
+                fallbackLines.push('  상세 비교는 다음 기준선부터 표시됩니다.');
                 continue;
               }
 
               if (rows.length === 0) {
-                lines.push('  ⚪ 상세 비교 행 없음. Actions artifact에서 원문을 확인하세요.');
+                const text = `${endpointLabel(item)}\n상세 비교 행 없음. Actions artifact에서 원문을 확인하세요.`;
+                addSection(text);
+                fallbackLines.push('  상세 비교 행 없음. Actions artifact에서 원문을 확인하세요.');
                 continue;
               }
 
               const visibleRows = sortedContractRows(rows).slice(0, maxRowsPerKind * 3);
+              const detailLines = [];
               for (const row of visibleRows) {
                 const kind = rowKind(row);
-                lines.push(
-                  `  ${contractKindLabel(kind)} | ${tableCell(locationLabel(row))} | ${tableCell(javaDeclaration(kind, row, item))}`
+                detailLines.push(
+                  `${contractKindLabel(kind)} | ${tableCell(locationLabel(row))} | ${tableCell(javaDeclaration(kind, row, item))}`
                 );
               }
 
               if (rows.length > visibleRows.length) {
-                lines.push(`  • 외 ${rows.length - visibleRows.length}건은 Actions artifact에서 확인`);
+                detailLines.push(`... 외 ${rows.length - visibleRows.length}건은 Actions artifact에서 확인`);
               }
+
+              addSection(`${endpointLabel(item)}\n\`\`\`\n${detailLines.join('\n')}\n\`\`\``);
+              fallbackLines.push(...detailLines.map((line) => `  ${line}`));
             }
 
             if (items.length > maxItems) {
-              lines.push(`• 외 ${items.length - maxItems}개 엔드포인트는 Actions artifact에서 확인`);
+              const text = `외 ${items.length - maxItems}개 엔드포인트는 Actions artifact에서 확인`;
+              addSection(text);
+              fallbackLines.push(`• ${text}`);
             }
           }
 
@@ -753,37 +829,59 @@ jobs:
               return;
             }
 
-            lines.push('', `*📝 Doc Changed* \`${items.length}건\``);
+            addSection(`*Doc Changed* (${items.length}건)`);
+            fallbackLines.push('', `*Doc Changed* (${items.length}건)`);
             for (const item of items.slice(0, maxItems)) {
-              lines.push(`• ${endpointLabel(item)}`);
+              fallbackLines.push(`• ${endpointLabel(item)}`);
               const rows = Array.isArray(item.comparisonRows) ? item.comparisonRows : [];
+              const detailLines = [];
               for (const row of rows.slice(0, 3)) {
-                lines.push(`  • ${locationLabel(row)} ${fieldName(row)}: ${compact(row.previous, 80)} → ${compact(row.next, 80)}`);
+                detailLines.push(`${locationLabel(row)} ${fieldName(row)}`);
+                detailLines.push(`- 이전: ${compact(row.previous, 80)}`);
+                detailLines.push(`+ 변경: ${compact(row.next, 80)}`);
               }
               if (rows.length > 3) {
-                lines.push(`  • 외 ${rows.length - 3}건은 Actions artifact에서 확인`);
+                detailLines.push(`... 외 ${rows.length - 3}건은 Actions artifact에서 확인`);
               }
+              addSection(`${endpointLabel(item)}\n\`\`\`\n${detailLines.join('\n')}\n\`\`\``);
+              fallbackLines.push(...detailLines.map((line) => `  ${line}`));
             }
 
             if (items.length > maxItems) {
-              lines.push(`• 외 ${items.length - maxItems}개 엔드포인트는 Actions artifact에서 확인`);
+              const text = `외 ${items.length - maxItems}개 엔드포인트는 Actions artifact에서 확인`;
+              addSection(text);
+              fallbackLines.push(`• ${text}`);
             }
           }
 
-          addEndpointSection('🆕', 'Added', added);
-          addEndpointSection('🗑️', 'Removed', removed);
+          addHeader();
+          addEndpointSection('Added', added);
+          addEndpointSection('Removed', removed);
           addContractSection(contractChanged);
           addDocSection(docChanged);
 
-          lines.push('', '상세 내용은 Actions artifact의 `changes.md`와 `changes.json`에서 확인하세요.');
+          addDivider();
+          addBlock({
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: process.env.ACTIONS_RUN_URL
+                  ? `전체 상세는 <${process.env.ACTIONS_RUN_URL}|Actions artifact>의 changes.md / changes.json에서 확인`
+                  : '전체 상세는 Actions artifact의 changes.md / changes.json에서 확인',
+              },
+            ],
+          });
+          fallbackLines.push('', '전체 상세는 Actions artifact의 changes.md / changes.json에서 확인');
 
-          let message = lines.join('\n');
+          let message = fallbackLines.join('\n');
           if (message.length > maxPayloadLength) {
             message = `${message.slice(0, maxPayloadLength - 80)}\n\n... 전체 내용은 Actions artifact에서 확인하세요.`;
           }
 
           const payload = {
             text: message,
+            blocks,
           };
 
           fs.writeFileSync('slack-payload.json', JSON.stringify(payload));
