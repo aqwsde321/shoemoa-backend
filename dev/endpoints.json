@@ -473,9 +473,6 @@
                   "$ref": "#/components/schemas/SortObject"
                 }
               },
-              "unpaged": {
-                "type": "boolean"
-              },
               "paged": {
                 "type": "boolean"
               },
@@ -486,6 +483,9 @@
               "pageSize": {
                 "type": "integer",
                 "format": "int32"
+              },
+              "unpaged": {
+                "type": "boolean"
               }
             }
           },
@@ -524,11 +524,11 @@
                 "type": "integer",
                 "format": "int32"
               },
-              "last": {
-                "type": "boolean"
-              },
               "pageable": {
                 "$ref": "#/components/schemas/PageableObject"
+              },
+              "last": {
+                "type": "boolean"
               },
               "first": {
                 "type": "boolean"
