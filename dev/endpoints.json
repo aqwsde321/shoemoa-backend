@@ -302,12 +302,12 @@
       "method": "get",
       "path": "/api/members/verify-email",
       "summary": "이메일 인증",
-      "description": "메일로 발송된 링크를 통해 이메일 인증을 완료합니다.",
+      "description": "메일로 발송된 인증 토큰을 검증하고 회원 계정을 활성화합니다.",
       "operationId": "verifyEmail",
       "tags": [
         "Member"
       ],
-      "rawFingerprint": "4344a0e7d35ca1b991672c86da366df379c243425eb7b3019f8852e5fbb86b45",
+      "rawFingerprint": "44fdf6963e7904acc3be0e29ace57d870634ec4dd9b4dd21510ceede98486d0a",
       "contractFingerprint": "db88c18c4391e5c130fdabb794334f10ab7287b09d0ccde79c827b80a4c0235c",
       "contractSnapshot": {
         "method": "get",
@@ -389,78 +389,6 @@
             }
           }
         }
-      }
-    },
-    {
-      "id": "get-api-openapi-slack-test",
-      "method": "get",
-      "path": "/api/openapi-slack-test",
-      "summary": "",
-      "description": "",
-      "operationId": "openApiSlackTest",
-      "tags": [
-        "open-api-slack-test-controller"
-      ],
-      "rawFingerprint": "e0aa7c701a9fb68aba12be9f9be23233673a8c16bc5b17f08d85546c5f93b10f",
-      "contractFingerprint": "324bcac27ffe8bf10202109283b789840f506223c9fcd43ce3da4844e6e0e41a",
-      "contractSnapshot": {
-        "method": "get",
-        "path": "/api/openapi-slack-test",
-        "operation": {
-          "responses": {
-            "200": {
-              "content": {
-                "*/*": {
-                  "schema": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "parameters": [],
-          "requestBody": null
-        },
-        "referencedSchemas": {}
-      }
-    },
-    {
-      "id": "get-api-openapi-slack-test-v2",
-      "method": "get",
-      "path": "/api/openapi-slack-test-v2",
-      "summary": "",
-      "description": "",
-      "operationId": "openApiSlackTestV2",
-      "tags": [
-        "open-api-slack-test-controller"
-      ],
-      "rawFingerprint": "e588565fbb6f2f8e9ed9584aa2138610165bf74ecea1cfbd68095117d9fea28d",
-      "contractFingerprint": "fdd25e1e452b52dd95c20e98717d5ff78492f23c712987c64fcb368ab2fd6e68",
-      "contractSnapshot": {
-        "method": "get",
-        "path": "/api/openapi-slack-test-v2",
-        "operation": {
-          "responses": {
-            "200": {
-              "content": {
-                "*/*": {
-                  "schema": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "parameters": [],
-          "requestBody": null
-        },
-        "referencedSchemas": {}
       }
     },
     {
@@ -904,18 +832,29 @@
       "id": "get-healthz",
       "method": "get",
       "path": "/healthz",
-      "summary": "",
-      "description": "",
+      "summary": "서비스 상태 확인",
+      "description": "서비스 상태와 Render 배포 커밋 정보를 반환합니다.",
       "operationId": "healthz",
       "tags": [
         "health-check-controller"
       ],
-      "rawFingerprint": "9d7efaa23478713bca9b64337b5df73ee3edf62aa9edc0d16f7c6b62dba60561",
-      "contractFingerprint": "884c0b3649a81e14300ddbd54dc7a8be256467805713b07f4252e38e833e3fd2",
+      "rawFingerprint": "3a16c3fd9d24ee18c7dacdabffd0d93a22fc21a4c96c2659cf38970b8799cd45",
+      "contractFingerprint": "011dd0d73d2a79fae135c77c5eb4730beb37496a1ffb7b801a3a05703c583c42",
       "contractSnapshot": {
         "method": "get",
         "path": "/healthz",
         "operation": {
+          "parameters": [
+            {
+              "name": "verbose",
+              "in": "query",
+              "required": false,
+              "schema": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          ],
           "responses": {
             "200": {
               "content": {
@@ -930,7 +869,6 @@
               }
             }
           },
-          "parameters": [],
           "requestBody": null
         },
         "referencedSchemas": {}
