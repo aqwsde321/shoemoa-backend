@@ -15,7 +15,7 @@ Workflow:
 자동 실행:
 
 - `main` push CI 성공 후 `dev` 대상으로 실행
-- Render 배포 반영을 기다리기 위해 기본 180초 대기 후 `/v3/api-docs`를 조회
+- Render의 `/healthz` commit 값이 대상 커밋과 일치할 때까지 최대 900초 대기 후 `/v3/api-docs`를 조회
 
 수동 실행 대상:
 
@@ -28,11 +28,12 @@ Workflow:
 ```text
 배포 완료
 -> CI 성공 후 OpenAPI Slack Report workflow 자동 실행 또는 수동 실행
+-> 자동 실행이면 Render /healthz 로 대상 커밋 배포 완료 확인
 -> 배포된 /v3/api-docs 다운로드
 -> 이전 openapi/review/catalog/endpoints.json 복원
 -> npx --yes openapi-projector catalog 실행
 -> 변경이 있으면 openapi/changes.md 를 Slack 전송
--> 갱신된 endpoints.json 을 openapi-baseline 브랜치에 저장
+-> 갱신된 endpoints.json 과 원본 openapi.json 을 openapi-baseline 브랜치에 저장
 ```
 
 ## GitHub Secrets
@@ -79,9 +80,14 @@ PROD_OAS_AUTH_HEADER=Authorization: Bearer ...
 
 ```text
 dev/endpoints.json
+dev/openapi.json
 stg/endpoints.json
+stg/openapi.json
 prod/endpoints.json
+prod/openapi.json
 ```
+
+`endpoints.json`은 변경 감지에 사용하는 정규화된 endpoint catalog입니다. `openapi.json`은 이전 원본 Swagger 문서를 확인하기 위한 보관용입니다.
 
 첫 실행에서는 이전 기준선이 없으므로 기준선을 저장하고 Slack에 기준선 생성 메시지를 보냅니다. 두 번째 실행부터 변경이 있을 때 Slack 변경 공지가 전송됩니다.
 
@@ -93,6 +99,7 @@ prod/endpoints.json
 openapi/changes.md
 openapi/changes.json
 openapi/review/catalog/endpoints.json
+openapi/_internal/source/openapi.json
 ```
 
-`openapi/changes.md` 전체 내용은 GitHub Actions artifact로 업로드됩니다. Slack 메시지는 길이 제한 때문에 일부만 전송될 수 있습니다.
+`openapi/changes.md`, `changes.json`, 현재 원본 `openapi.json`, 이전 원본 `previous-openapi.json`은 GitHub Actions artifact로 업로드됩니다. Slack 메시지는 길이 제한 때문에 일부만 전송될 수 있습니다.

@@ -52,7 +52,7 @@ public class MemberController {
                 .body(new MessageResponse("회원가입 요청이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요."));
     }
 
-    @Operation(summary = "이메일 인증", description = "메일로 발송된 링크를 통해 이메일 인증을 완료합니다.")
+    @Operation(summary = "이메일 인증", description = "메일로 발송된 인증 토큰을 검증하고 회원 계정을 활성화합니다.")
     @ApiResponses(
             value = {
                 @ApiResponse(

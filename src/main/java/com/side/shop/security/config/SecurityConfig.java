@@ -57,8 +57,6 @@ public class SecurityConfig {
                         // 인증 불필요 경로
                         .requestMatchers(
                                 "/healthz",
-                                "/api/openapi-slack-test",
-                                "/api/openapi-slack-test-v2",
                                 "/api/members/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
