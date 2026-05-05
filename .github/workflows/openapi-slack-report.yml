@@ -275,6 +275,19 @@ jobs:
           node <<'NODE'
           const fs = require('node:fs');
           const changes = JSON.parse(fs.readFileSync('openapi/changes.json', 'utf8'));
+          const currentCatalog = fs.existsSync('openapi/review/catalog/endpoints.json')
+            ? JSON.parse(fs.readFileSync('openapi/review/catalog/endpoints.json', 'utf8'))
+            : null;
+          const catalogEndpoints = Array.isArray(currentCatalog?.endpoints)
+            ? currentCatalog.endpoints
+            : [];
+          const catalogById = new Map(catalogEndpoints.map((entry) => [entry.id, entry]));
+          const catalogByOperation = new Map(
+            catalogEndpoints.map((entry) => [
+              `${String(entry.method || '').toUpperCase()} ${entry.path}`,
+              entry,
+            ])
+          );
           const baselineInitialized = process.env.BASELINE_INITIALIZED === 'true';
           const added = Array.isArray(changes.added) ? changes.added : [];
           const removed = Array.isArray(changes.removed) ? changes.removed : [];
@@ -368,9 +381,32 @@ jobs:
             return match[1].split('.')[0] || null;
           }
 
+          function inferParameterLocation(row) {
+            const parsedLocation = parseParameterLocation(row);
+            const category = String(row?.category ?? '');
+
+            if (parsedLocation) {
+              return parsedLocation;
+            }
+            if (category === 'Query Parameter') {
+              return 'query';
+            }
+            if (category === 'Path Parameter') {
+              return 'path';
+            }
+            if (category === 'Header Parameter') {
+              return 'header';
+            }
+            if (category === 'Cookie Parameter') {
+              return 'cookie';
+            }
+
+            return null;
+          }
+
           function locationLabel(row) {
             const category = String(row?.category ?? '');
-            const parsedLocation = parseParameterLocation(row);
+            const parsedLocation = inferParameterLocation(row);
 
             if (parsedLocation === 'query' || category === 'Query Parameter') {
               return '요청 Query 파라미터';
@@ -426,6 +462,102 @@ jobs:
             const withoutRequired = target.replace(/\.required$/, '');
             const parts = withoutRequired.split('.');
             return parts.at(-1) || 'value';
+          }
+
+          function catalogEntryFor(item) {
+            if (item?.id && catalogById.has(item.id)) {
+              return catalogById.get(item.id);
+            }
+
+            const key = `${String(item?.method || '').toUpperCase()} ${item?.path}`;
+            return catalogByOperation.get(key) ?? null;
+          }
+
+          function schemaRefName(ref) {
+            return String(ref ?? '').split('/').at(-1) || null;
+          }
+
+          function javaTypeFromSchema(schema) {
+            if (!schema || typeof schema !== 'object') {
+              return null;
+            }
+
+            if (typeof schema.$ref === 'string') {
+              return schemaRefName(schema.$ref);
+            }
+
+            if (Array.isArray(schema.enum)) {
+              return 'String';
+            }
+
+            if (schema.type === 'array') {
+              return `List<${javaTypeFromSchema(schema.items) ?? 'Object'}>`;
+            }
+
+            if (schema.type === 'string') {
+              if (schema.format === 'uuid') {
+                return 'UUID';
+              }
+              if (schema.format === 'date') {
+                return 'LocalDate';
+              }
+              if (schema.format === 'date-time') {
+                return 'OffsetDateTime';
+              }
+              if (schema.format === 'binary') {
+                return 'MultipartFile';
+              }
+              return 'String';
+            }
+
+            if (schema.type === 'integer') {
+              return schema.format === 'int64' ? 'Long' : 'Integer';
+            }
+
+            if (schema.type === 'number') {
+              if (schema.format === 'float') {
+                return 'Float';
+              }
+              if (schema.format === 'double') {
+                return 'Double';
+              }
+              return 'BigDecimal';
+            }
+
+            if (schema.type === 'boolean') {
+              return 'Boolean';
+            }
+
+            if (schema.type === 'object') {
+              return 'Map<String, Object>';
+            }
+
+            return null;
+          }
+
+          function inferredJavaType(item, row) {
+            const entry = catalogEntryFor(item);
+            const snapshot = entry?.contractSnapshot;
+            const parameterLocation = inferParameterLocation(row);
+            const name = fieldName(row);
+
+            if (parameterLocation) {
+              const parameter = (snapshot?.operation?.parameters ?? []).find((candidate) =>
+                candidate?.in === parameterLocation && candidate?.name === name
+              );
+              return javaTypeFromSchema(parameter?.schema);
+            }
+
+            const target = stripFormatting(row?.target).replace(/\.required$/, '');
+            const [schemaName, ...propertyParts] = target.split('.');
+            const propertyName = propertyParts.join('.');
+            if (schemaName && propertyName) {
+              return javaTypeFromSchema(
+                snapshot?.referencedSchemas?.[schemaName]?.properties?.[propertyName]
+              );
+            }
+
+            return null;
           }
 
           function parseValueSummary(value) {
@@ -520,7 +652,19 @@ jobs:
                 return nextSummary.nullable ? ' // nullable 추가' : ' // nullable 제거';
               }
 
-              return previous && next ? ` // ${previous} -> ${next}` : '';
+              if (
+                previousSummary.type &&
+                previousSummary.type === nextSummary.type &&
+                previousSummary.required !== null &&
+                nextSummary.required !== null &&
+                previousSummary.required !== nextSummary.required
+              ) {
+                const previousRequired = previousSummary.required ? 'required' : 'optional';
+                const nextRequired = nextSummary.required ? 'required' : 'optional';
+                return ` // ${previousRequired} → ${nextRequired}`;
+              }
+
+              return previous && next ? ` // ${previous} → ${next}` : '';
             }
 
             const flags = [];
@@ -535,25 +679,30 @@ jobs:
             return flags.length > 0 ? ` // ${flags.join(', ')}` : '';
           }
 
-          function javaDeclaration(kind, row) {
+          function javaDeclaration(kind, row, item) {
             const source = kind === 'removed' ? row.previous : row.next;
             const summary = parseValueSummary(source);
             const name = fieldName(row);
             const comment = modifierComment(kind, row, summary);
-            const hasKnownType = Boolean(summary.type);
+            const inferredType = inferredJavaType(item, row);
+            const hasKnownType = Boolean(summary.type || inferredType);
             const declaration = hasKnownType
-              ? `${javaTypeFromSummary(summary)} ${name};${comment}`
+              ? `${summary.type ? javaTypeFromSummary(summary) : inferredType} ${name};${comment}`
               : `${name};${comment}`;
             return kind === 'removed' ? `~${declaration}~` : declaration;
           }
 
-          function contractTitle(kind, row) {
+          function contractKindLabel(kind) {
             const meta = {
               added: ['🟢', '추가'],
               changed: ['🟡', '변경'],
               removed: ['🔴', '삭제'],
             }[kind];
-            return `${meta[0]} ${locationLabel(row)} ${meta[1]}`;
+            return `${meta[0]} ${meta[1]}`;
+          }
+
+          function tableCell(value) {
+            return compact(value, 140).replace(/\|/g, '/');
           }
 
           function sortedContractRows(rows) {
@@ -584,8 +733,9 @@ jobs:
               const visibleRows = sortedContractRows(rows).slice(0, maxRowsPerKind * 3);
               for (const row of visibleRows) {
                 const kind = rowKind(row);
-                lines.push(`  ${contractTitle(kind, row)}`);
-                lines.push(`    ${javaDeclaration(kind, row)}`);
+                lines.push(
+                  `  ${contractKindLabel(kind)} | ${tableCell(locationLabel(row))} | ${tableCell(javaDeclaration(kind, row, item))}`
+                );
               }
 
               if (rows.length > visibleRows.length) {

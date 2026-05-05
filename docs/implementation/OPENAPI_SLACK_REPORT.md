@@ -115,7 +115,7 @@ Slack 메시지는 `changes.json`을 기반으로 요약, 커밋, Actions 링크
 3. 🧩 `Contract Changed`
 4. 📝 `Doc Changed`
 
-`Contract Changed`는 endpoint별로 다시 아래 묶음으로 나눕니다.
+`Contract Changed`는 endpoint별 표로 표시합니다.
 
 - 🟢 `추가`: 새 query/path/header parameter, request/response field 등
 - 🟡 `수정`: required 여부, 타입, format, enum 등 기존 계약 값 변경
@@ -126,14 +126,9 @@ Slack 메시지는 `changes.json`을 기반으로 요약, 커밋, Actions 링크
 예시:
 
 ```text
-🔴 응답 Body 필드 삭제
-  ~BigDecimal oldPrice;~
-
-🟡 요청 Query 파라미터 변경
-  page; // optional -> required
-
-🟢 응답 Body 필드 추가
-  String thumbnailUrl;
+🔴 삭제 | 응답 Body 필드 | ~BigDecimal oldPrice;~
+🟡 변경 | 요청 Query 파라미터 | Integer page; // optional → required
+🟢 추가 | 응답 Body 필드 | String thumbnailUrl;
 ```
 
 Slack에는 요약과 일부 상세만 표시하고, 전체 상세는 Actions artifact의 `changes.md`와 `changes.json`에서 확인합니다.
