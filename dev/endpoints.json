@@ -838,8 +838,8 @@
       "tags": [
         "health-check-controller"
       ],
-      "rawFingerprint": "a6eda5458558a61cb5c6196c350802a4dd50b2d4817907f828ae66f845f86081",
-      "contractFingerprint": "0b14c72101b4fcfd34809c52771dd4ba610ca6d67b50274c6d5265db03b7b6a8",
+      "rawFingerprint": "3a16c3fd9d24ee18c7dacdabffd0d93a22fc21a4c96c2659cf38970b8799cd45",
+      "contractFingerprint": "011dd0d73d2a79fae135c77c5eb4730beb37496a1ffb7b801a3a05703c583c42",
       "contractSnapshot": {
         "method": "get",
         "path": "/healthz",
@@ -852,14 +852,6 @@
               "schema": {
                 "type": "boolean",
                 "default": false
-              }
-            },
-            {
-              "name": "reportMode",
-              "in": "query",
-              "required": false,
-              "schema": {
-                "type": "string"
               }
             }
           ],
