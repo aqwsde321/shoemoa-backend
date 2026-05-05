@@ -264,6 +264,8 @@ jobs:
           CHANGE_SUMMARY: ${{ steps.changes.outputs.summary }}
           TITLE_PREFIX: ${{ steps.vars.outputs.title_prefix }}
           BASELINE_INITIALIZED: ${{ steps.changes.outputs.baseline_initialized }}
+          COMMIT_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          ACTIONS_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -z "$SLACK_WEBHOOK_URL" ]; then
             echo "::error::SLACK_WEBHOOK_URL secret is required when OpenAPI changes are detected."
@@ -272,18 +274,91 @@ jobs:
 
           node <<'NODE'
           const fs = require('node:fs');
+          const changes = JSON.parse(fs.readFileSync('openapi/changes.json', 'utf8'));
           const baselineInitialized = process.env.BASELINE_INITIALIZED === 'true';
-          const report = fs.readFileSync('openapi/changes.md', 'utf8');
-          const maxReportLength = 3200;
-          const trimmedReport =
-            report.length > maxReportLength
-              ? `${report.slice(0, maxReportLength)}\n\n...truncated. See the GitHub Actions artifact for the full report.`
-              : report;
           const title = baselineInitialized
             ? `${process.env.TITLE_PREFIX} OpenAPI 기준선 생성`
             : `${process.env.TITLE_PREFIX} OpenAPI 변경 감지: ${process.env.CHANGE_SUMMARY}`;
+
+          const maxItems = 8;
+          const maxRows = 5;
+          const commit = (process.env.COMMIT_SHA || process.env.GITHUB_SHA || '').slice(0, 7);
+          const lines = [
+            `*${title}*`,
+            '',
+            `- 요약: \`${process.env.CHANGE_SUMMARY}\``,
+            `- 전체 엔드포인트: \`${changes.total ?? '-'}\``,
+          ];
+
+          if (commit) {
+            lines.push(`- 커밋: \`${commit}\``);
+          }
+
+          if (process.env.ACTIONS_RUN_URL) {
+            lines.push(`- Actions: <${process.env.ACTIONS_RUN_URL}|실행 로그>`);
+          }
+
+          function compact(value, maxLength = 180) {
+            const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+            return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
+          }
+
+          function endpointLabel(item) {
+            const method = String(item.method || '').toUpperCase();
+            const summary = item.summary ? ` - ${compact(item.summary, 80)}` : '';
+            return `\`${method}\` \`${item.path}\`${summary}`;
+          }
+
+          function addEndpointSection(title, items) {
+            if (!Array.isArray(items) || items.length === 0) {
+              return;
+            }
+
+            lines.push('', `*${title}*`);
+            for (const item of items.slice(0, maxItems)) {
+              lines.push(`- ${endpointLabel(item)}`);
+            }
+
+            if (items.length > maxItems) {
+              lines.push(`- 외 ${items.length - maxItems}건은 Actions artifact에서 확인`);
+            }
+          }
+
+          function addChangedSection(title, items) {
+            if (!Array.isArray(items) || items.length === 0) {
+              return;
+            }
+
+            lines.push('', `*${title}*`);
+            for (const item of items.slice(0, maxItems)) {
+              lines.push(`- ${endpointLabel(item)}`);
+
+              const rows = Array.isArray(item.comparisonRows) ? item.comparisonRows : [];
+              for (const row of rows.slice(0, maxRows)) {
+                lines.push(
+                  `  - ${compact(row.category)} ${compact(row.target)}: ${compact(row.previous)} → ${compact(row.next)}`
+                );
+              }
+
+              if (rows.length > maxRows) {
+                lines.push(`  - 외 ${rows.length - maxRows}건은 Actions artifact에서 확인`);
+              }
+            }
+
+            if (items.length > maxItems) {
+              lines.push(`- 외 ${items.length - maxItems}개 엔드포인트는 Actions artifact에서 확인`);
+            }
+          }
+
+          addEndpointSection('Added', changes.added);
+          addEndpointSection('Removed', changes.removed);
+          addChangedSection('Contract Changed', changes.contractChanged);
+          addChangedSection('Doc Changed', changes.docChanged);
+
+          lines.push('', '상세 내용은 Actions artifact의 `changes.md`와 `changes.json`에서 확인하세요.');
+
           const payload = {
-            text: `${title}\n\n\`\`\`${trimmedReport}\`\`\``,
+            text: lines.join('\n'),
           };
 
           fs.writeFileSync('slack-payload.json', JSON.stringify(payload));

@@ -102,4 +102,6 @@ openapi/review/catalog/endpoints.json
 openapi/_internal/source/openapi.json
 ```
 
-`openapi/changes.md`, `changes.json`, 현재 원본 `openapi.json`, 이전 원본 `previous-openapi.json`은 GitHub Actions artifact로 업로드됩니다. Slack 메시지는 길이 제한 때문에 일부만 전송될 수 있습니다.
+`openapi/changes.md`, `changes.json`, 현재 원본 `openapi.json`, 이전 원본 `previous-openapi.json`은 GitHub Actions artifact로 업로드됩니다.
+
+Slack 메시지는 `changes.json`을 기반으로 요약, 커밋, Actions 링크, 변경 endpoint 목록만 간결하게 전송합니다. 전체 상세 내용은 Actions artifact의 `changes.md`와 `changes.json`에서 확인합니다.
